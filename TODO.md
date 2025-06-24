@@ -1,0 +1,21 @@
+# 📋  TODO 
+
+- [ ] Makefile
+- [ ] Dockerisation
+- [ ] Install phpstan
+- [ ] Install phpcsfixer
+- [ ] Lint
+- [ ] Update Symfony to 6x manually
+- [ ] Update Symfony to 7x using rector
+- [ ] Fix current issues (+ add tests to them)
+- [ ] Create fixtures
+- [ ] Add invitee management feature
+- [ ] Add remaining unit and functional tests
+- [ ] Add integration tests
+- [ ] Create CI pipeline
+- [ ] Write performance report
+- [ ] Check for optimizations
+- [ ] Write readme
+- [ ] Write contributing guide
+- [ ] Write documentation
+- [ ] Celebrate 🎉
