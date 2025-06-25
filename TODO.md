@@ -1,7 +1,7 @@
 # 📋  TODO 
 
-- [ ] Makefile
-- [ ] Dockerisation
+- [X] Makefile
+- [X] Dockerisation
 - [ ] Install phpstan
 - [ ] Install phpcsfixer
 - [ ] Lint
