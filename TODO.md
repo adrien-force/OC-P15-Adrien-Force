@@ -5,7 +5,7 @@
 - [X] Install phpstan
 - [X] Install phpcsfixer
 - [X] Lint
-- [ ] Update Symfony to 6x manually
+- [X] Update Symfony to 6x manually
 - [ ] Update Symfony to 7x using rector
 - [ ] Correct PHPStan LVL6 issues
 - [ ] Fix current issues (+ add tests to them)
