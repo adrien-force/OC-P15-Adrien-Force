@@ -3,8 +3,8 @@
 - [X] Makefile
 - [X] Dockerisation
 - [X] Install phpstan
-- [ ] Install phpcsfixer
-- [ ] Lint
+- [X] Install phpcsfixer
+- [X] Lint
 - [ ] Update Symfony to 6x manually
 - [ ] Update Symfony to 7x using rector
 - [ ] Correct PHPStan LVL6 issues

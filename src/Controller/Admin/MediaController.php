@@ -34,7 +34,7 @@ class MediaController extends AbstractController
         return $this->render('admin/media/index.html.twig', [
             'medias' => $medias,
             'total' => $total,
-            'page' => $page
+            'page' => $page,
         ]);
     }
 
@@ -51,7 +51,7 @@ class MediaController extends AbstractController
             if (!$this->isGranted('ROLE_ADMIN')) {
                 $media->setUser($this->getUser());
             }
-            $media->setPath('uploads/' . md5(uniqid()) . '.' . $media->getFile()->guessExtension());
+            $media->setPath('uploads/'.md5(uniqid()).'.'.$media->getFile()->guessExtension());
             $media->getFile()->move('uploads/', $media->getPath());
             $this->getDoctrine()->getManager()->persist($media);
             $this->getDoctrine()->getManager()->flush();

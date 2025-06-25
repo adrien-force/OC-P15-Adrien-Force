@@ -24,8 +24,9 @@ class HomeController extends AbstractController
     public function guests()
     {
         $guests = $this->getDoctrine()->getRepository(User::class)->findBy(['admin' => false]);
+
         return $this->render('front/guests.html.twig', [
-            'guests' => $guests
+            'guests' => $guests,
         ]);
     }
 
@@ -35,8 +36,9 @@ class HomeController extends AbstractController
     public function guest(int $id)
     {
         $guest = $this->getDoctrine()->getRepository(User::class)->find($id);
+
         return $this->render('front/guest.html.twig', [
-            'guest' => $guest
+            'guest' => $guest,
         ]);
     }
 
@@ -52,10 +54,11 @@ class HomeController extends AbstractController
         $medias = $album
             ? $this->getDoctrine()->getRepository(Media::class)->findByAlbum($album)
             : $this->getDoctrine()->getRepository(Media::class)->findByUser($user);
+
         return $this->render('front/portfolio.html.twig', [
             'albums' => $albums,
             'album' => $album,
-            'medias' => $medias
+            'medias' => $medias,
         ]);
     }
 
