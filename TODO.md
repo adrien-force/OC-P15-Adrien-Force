@@ -2,17 +2,19 @@
 
 - [X] Makefile
 - [X] Dockerisation
-- [ ] Install phpstan
+- [X] Install phpstan
 - [ ] Install phpcsfixer
 - [ ] Lint
 - [ ] Update Symfony to 6x manually
 - [ ] Update Symfony to 7x using rector
+- [ ] Correct PHPStan LVL6 issues
 - [ ] Fix current issues (+ add tests to them)
 - [ ] Create fixtures
 - [ ] Add invitee management feature
 - [ ] Add remaining unit and functional tests
 - [ ] Add integration tests
 - [ ] Create CI pipeline
+- [ ] Correct PHPStan LVL10 issues
 - [ ] Write performance report
 - [ ] Check for optimizations
 - [ ] Write readme
