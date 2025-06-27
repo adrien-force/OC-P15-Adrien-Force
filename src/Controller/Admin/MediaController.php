@@ -6,21 +6,20 @@ use App\Entity\Media;
 use App\Form\MediaType;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Routing\Attribute\Route;
 
 class MediaController extends AbstractController
 {
     public function __construct(
         private EntityManagerInterface $em,
-    )
-    {
+    ) {
     }
 
-    /**
-     * @Route("/admin/media", name="admin_media_index")
-     */
-    public function index(Request $request)
+    #[Route(path: '/admin/media', name: 'admin_media_index')]
+    public function index(Request $request): Response
     {
         $page = $request->query->getInt('page', 1);
 
@@ -45,10 +44,8 @@ class MediaController extends AbstractController
         ]);
     }
 
-    /**
-     * @Route("/admin/media/add", name="admin_media_add")
-     */
-    public function add(Request $request)
+    #[Route(path: '/admin/media/add', name: 'admin_media_add')]
+    public function add(Request $request): RedirectResponse|Response
     {
         $media = new Media();
         $form = $this->createForm(MediaType::class, $media, ['is_admin' => $this->isGranted('ROLE_ADMIN')]);
@@ -66,13 +63,11 @@ class MediaController extends AbstractController
             return $this->redirectToRoute('admin_media_index');
         }
 
-        return $this->render('admin/media/add.html.twig', ['form' => $form->createView()]);
+        return $this->render('admin/media/add.html.twig', ['form' => $form]);
     }
 
-    /**
-     * @Route("/admin/media/delete/{id}", name="admin_media_delete")
-     */
-    public function delete(int $id)
+    #[Route(path: '/admin/media/delete/{id}', name: 'admin_media_delete')]
+    public function delete(int $id): RedirectResponse
     {
         $media = $this->em->getRepository(Media::class)->find($id);
         $this->em->remove($media);

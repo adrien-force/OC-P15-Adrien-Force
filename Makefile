@@ -1,3 +1,5 @@
+.PHONY: docker phpstan rector rector-fix reset-db restore-db db update-schema lint
+
 restore-db:
 	@for f in docker/postgres/*.sql; do \
 		echo "Importing $$f"; \
@@ -16,3 +18,19 @@ db:
 	$(MAKE) reset-db
 	$(MAKE) update-schema
 	$(MAKE) restore-db
+
+docker:
+	@echo "Starting Docker containers..."
+	docker-compose up -d --force-recreate
+
+phpstan:
+	vendor/bin/phpstan analyse
+
+rector:
+	vendor/bin/rector process src --dry-run
+
+rector-fix:
+	vendor/bin/rector process src
+
+lint:
+	 ./vendor/bin/php-cs-fixer fix src

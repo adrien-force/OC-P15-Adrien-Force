@@ -6,7 +6,7 @@
 - [X] Install phpcsfixer
 - [X] Lint
 - [X] Update Symfony to 6x manually
-- [ ] Update Symfony to 7x using rector
+- [X] Update Symfony to 7x using rector
 - [ ] Correct PHPStan LVL6 issues
 - [ ] Fix current issues (+ add tests to them)
 - [ ] Create fixtures
