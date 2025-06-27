@@ -11,14 +11,25 @@ use Symfony\Component\Form\Extension\Core\Type\FileType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
+use Symfony\Component\Validator\Constraints\File;
 
 class MediaType extends AbstractType
 {
+    private const MAX_FILE_SIZE = '2048k';
+    private const ALLOWED_EXTENSIONS = ['jpg', 'png', 'webp', 'bmp', 'tiff', 'heic'];
+
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
         $builder
             ->add('file', FileType::class, [
                 'label' => 'Image',
+                'constraints' => [
+                    new File(
+                        maxSize: self::MAX_FILE_SIZE,
+                        extensions: self::ALLOWED_EXTENSIONS,
+                        extensionsMessage: sprintf('Les extensions autorisées sont : %s.', implode(', ', self::ALLOWED_EXTENSIONS))
+                    ),
+                ],
             ])
             ->add('title', TextType::class, [
                 'label' => 'Titre',

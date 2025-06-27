@@ -24,7 +24,7 @@ docker:
 	docker-compose up -d --force-recreate
 
 phpstan:
-	vendor/bin/phpstan analyse
+	vendor/bin/phpstan analyse src
 
 rector:
 	vendor/bin/rector process src --dry-run
