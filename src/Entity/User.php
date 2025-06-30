@@ -23,18 +23,19 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     private bool $admin = false;
 
     #[ORM\Column]
-    private ?string $name;
+    private string $name;
 
     #[ORM\Column(type: 'text', nullable: true)]
     private ?string $description;
 
     #[ORM\Column(length: 180, unique: true)]
-    private ?string $email = null;
+    private string $email;
 
-    #[ORM\Column(type: 'string', nullable: true)]
+    #[ORM\Column(type: 'string')]
     #[Assert\PasswordStrength(minScore: Assert\PasswordStrength::STRENGTH_WEAK)]
-    private ?string $password = null;
+    private string $password;
 
+    /** @var Collection<int, Media> */
     #[ORM\OneToMany(targetEntity: Media::class, mappedBy: 'user')]
     private Collection $medias;
 
@@ -48,7 +49,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this->id;
     }
 
-    public function getEmail(): ?string
+    public function getEmail(): string
     {
         return $this->email;
     }
@@ -60,12 +61,12 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
-    public function getName(): ?string
+    public function getName(): string
     {
         return $this->name;
     }
 
-    public function setName(?string $name): void
+    public function setName(string $name): void
     {
         $this->name = $name;
     }
@@ -80,11 +81,15 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         $this->description = $description;
     }
 
+    /** @return Collection<int, Media> */
     public function getMedias(): Collection
     {
         return $this->medias;
     }
 
+    /**
+     * @param Collection<int, Media> $medias
+     */
     public function setMedias(Collection $medias): void
     {
         $this->medias = $medias;
@@ -115,12 +120,12 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return (string) $this->email;
     }
 
-    public function setPassword(?string $password): void
+    public function setPassword(string $password): void
     {
         $this->password = $password;
     }
 
-    public function getPassword(): ?string
+    public function getPassword(): string
     {
         return $this->password;
     }
