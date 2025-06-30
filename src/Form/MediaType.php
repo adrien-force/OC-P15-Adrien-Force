@@ -16,7 +16,7 @@ use Symfony\Component\Validator\Constraints\File;
 class MediaType extends AbstractType
 {
     private const MAX_FILE_SIZE = '2048k';
-    private const ALLOWED_EXTENSIONS = ['jpg', 'png', 'webp', 'bmp', 'tiff', 'heic'];
+    private const ALLOWED_EXTENSIONS = ['jpg', 'jpeg', 'png', 'webp', 'bmp', 'tiff', 'heic'];
 
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
