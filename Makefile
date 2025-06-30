@@ -1,4 +1,4 @@
-.PHONY: docker phpstan rector rector-fix reset-db restore-db db update-schema lint
+.PHONY: docker phpstan rector rector-fix reset-db restore-db db update-schema lint migration migrate
 
 restore-db:
 	@for f in docker/postgres/*.sql; do \
@@ -23,6 +23,7 @@ docker:
 	@echo "Starting Docker containers..."
 	docker-compose up -d --force-recreate
 
+
 phpstan:
 	vendor/bin/phpstan analyse src
 
@@ -34,3 +35,9 @@ rector-fix:
 
 lint:
 	 ./vendor/bin/php-cs-fixer fix src
+
+migration:
+	php bin/console make:migration
+
+migrate:
+	php bin/console doctrine:migrations:migrate
