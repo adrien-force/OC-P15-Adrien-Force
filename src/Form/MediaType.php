@@ -13,6 +13,9 @@ use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\Component\Validator\Constraints\File;
 
+/**
+ * @extends AbstractType<Media>
+ */
 class MediaType extends AbstractType
 {
     private const MAX_FILE_SIZE = '2048k';
