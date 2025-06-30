@@ -3,9 +3,11 @@
 namespace App\Controller\Admin;
 
 use App\Entity\Media;
+use App\Entity\User;
 use App\Form\MediaType;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\Form\Exception\LogicException;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -53,7 +55,11 @@ class MediaController extends AbstractController
 
         if ($form->isSubmitted() && $form->isValid() && $media->getFile()) {
             if (!$this->isGranted('ROLE_ADMIN')) {
-                $media->setUser($this->getUser());
+                if (($user = $this->getUser()) instanceof User) {
+                    $media->setUser($user);
+                } else {
+                    throw new LogicException('You must be logged in to add media.');
+                }
             }
             $media->setPath('uploads/'.md5(uniqid()).'.'.$media->getFile()->guessExtension());
             $media->getFile()->move('uploads/', $media->getPath());

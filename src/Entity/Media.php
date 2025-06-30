@@ -16,7 +16,7 @@ class Media
     private ?int $id = null;
 
     #[ORM\ManyToOne(targetEntity: User::class, inversedBy: 'medias', fetch: 'EAGER')]
-    private ?UserInterface $user = null;
+    private ?User $user = null;
 
     #[ORM\ManyToOne(targetEntity: Album::class, fetch: 'EAGER')]
     private ?Album $album = null;
@@ -34,12 +34,12 @@ class Media
         return $this->id;
     }
 
-    public function getUser(): ?UserInterface
+    public function getUser(): ?User
     {
         return $this->user;
     }
 
-    public function setUser(?UserInterface $user): void
+    public function setUser(?User $user): void
     {
         $this->user = $user;
     }
