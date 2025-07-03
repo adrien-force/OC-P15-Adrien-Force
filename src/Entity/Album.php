@@ -4,12 +4,13 @@ namespace App\Entity;
 
 use App\Repository\AlbumRepository;
 use Doctrine\ORM\Mapping as ORM;
+use Doctrine\ORM\Mapping\GeneratedValue;
 
 #[ORM\Entity(repositoryClass: AlbumRepository::class)]
 class Album
 {
     #[ORM\Id]
-    #[ORM\GeneratedValue]
+    #[GeneratedValue(strategy: 'SEQUENCE')]
     #[ORM\Column]
     private ?int $id = null;
 
