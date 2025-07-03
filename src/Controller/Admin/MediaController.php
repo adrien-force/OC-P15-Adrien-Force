@@ -12,6 +12,7 @@ use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 class MediaController extends AbstractController
 {
@@ -54,6 +55,7 @@ class MediaController extends AbstractController
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid() && $media->getFile()) {
+            //Todo: fix here
             if (!$this->isGranted('ROLE_ADMIN')) {
                 if (($user = $this->getUser()) instanceof User) {
                     $media->setUser($user);

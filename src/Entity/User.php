@@ -14,13 +14,16 @@ use Symfony\Component\Validator\Constraints as Assert;
 #[ORM\Table(name: '`user`')]
 class User implements UserInterface, PasswordAuthenticatedUserInterface
 {
+
+    const ADMIN_ROLE = 'ROLE_ADMIN';
+    const USER_ROLE = 'ROLE_USER';
+    /** To be used later */
+    const GUEST_ROLE = 'ROLE_GUEST';
+
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
     private ?int $id = null;
-
-    #[ORM\Column]
-    private bool $admin = false;
 
     #[ORM\Column]
     private string $name;
@@ -38,6 +41,10 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     /** @var Collection<int, Media> */
     #[ORM\OneToMany(targetEntity: Media::class, mappedBy: 'user')]
     private Collection $medias;
+
+    /** @var string[] */
+    #[ORM\Column(type: 'json', nullable: false, options: ['jsonb' => true])]
+    private array $roles = [];
 
     public function __construct()
     {
@@ -97,17 +104,26 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     public function isAdmin(): bool
     {
-        return $this->admin;
-    }
-
-    public function setAdmin(bool $admin): void
-    {
-        $this->admin = $admin;
+        return in_array(self::ADMIN_ROLE, $this->getRoles(), true);
     }
 
     public function getRoles(): array
     {
-        return $this->admin ? ['ROLE_ADMIN'] : ['ROLE_USER'];
+        return $this->roles;
+    }
+
+    public function addRole(string $role): self
+    {
+        $this->roles[] = $role;
+        return $this;
+    }
+
+    public function removeRole(string $role): self
+    {
+        if (false !== $key = array_search($role, $this->roles, true)) {
+            unset($this->roles[$key]);
+        }
+        return $this;
     }
 
     public function eraseCredentials(): void

@@ -25,7 +25,7 @@ docker:
 
 
 phpstan:
-	vendor/bin/phpstan analyse src
+	vendor/bin/phpstan analyse src --memory-limit=1G
 
 rector:
 	vendor/bin/rector process src --dry-run

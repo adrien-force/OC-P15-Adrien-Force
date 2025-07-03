@@ -8,12 +8,12 @@ use App\Entity\User;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Routing\Attribute\Route;
 
 class HomeController extends AbstractController
 {
     public function __construct(
-        private EntityManagerInterface $em,
+        private readonly EntityManagerInterface $em,
     ) {
     }
 
@@ -26,7 +26,7 @@ class HomeController extends AbstractController
     #[Route(path: '/guests', name: 'guests')]
     public function guests(): Response
     {
-        $guests = $this->em->getRepository(User::class)->findBy(['admin' => false]);
+        $guests = $this->em->getRepository(User::class)->findByRole(User::ADMIN_ROLE);
 
         return $this->render('front/guests.html.twig', [
             'guests' => $guests,
@@ -48,7 +48,7 @@ class HomeController extends AbstractController
     {
         $albums = $this->em->getRepository(Album::class)->findAll();
         $album = $id ? $this->em->getRepository(Album::class)->find($id) : null;
-        $user = $this->em->getRepository(User::class)->findOneByAdmin(true);
+        $user = $this->em->getRepository(User::class)->findByRole(User::ADMIN_ROLE);
 
         $medias = $album instanceof Album
             ? $this->em->getRepository(Media::class)->findByAlbum($album)
