@@ -2,6 +2,7 @@
 
 namespace App\Tests\Fonctionnal\Form;
 
+use App\Entity\User;
 use App\Repository\UserRepository;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 use Symfony\Component\Security\Core\User\UserInterface;
@@ -10,6 +11,9 @@ class MediaFormTest extends WebTestCase
 {
     private UserInterface $user;
     private UserRepository $userRepository;
+
+    private User $adminUser;
+    private User $baseUser;
 
 
     public function provideUncorrectMediaFiles(): \Generator
@@ -27,14 +31,16 @@ class MediaFormTest extends WebTestCase
         static::createClient();
 
         $this->userRepository = static::getContainer()->get(UserRepository::class);
-        $this->user = $this->userRepository->findOneBy(['email' =>  'ina@zaoui.com']);
+        $this->adminUser = $this->userRepository->findByRole(User::ADMIN_ROLE)[0];
+        $this->baseUser = $this->userRepository->findByRole(User::USER_ROLE)[0];
     }
 
     public function testThatMediaFormRendersCorrectly(): void
     {
         $client = static::getClient();
 
-        $client->loginUser($this->user);
+        $client->loginUser($this->adminUser);
+
 
         $crawler = $client->request('GET', '/admin/media/add');
 
@@ -50,7 +56,7 @@ class MediaFormTest extends WebTestCase
     {
         $client = static::getClient();
 
-        $client->loginUser($this->user);
+        $client->loginUser($this->adminUser);
 
         $crawler = $client->request('GET', '/admin/media/add');
 
@@ -71,7 +77,7 @@ class MediaFormTest extends WebTestCase
     {
         $client = static::getClient();
 
-        $client->loginUser($this->user);
+        $client->loginUser($this->adminUser);
 
         $crawler = $client->request('GET', '/admin/media/add');
 
