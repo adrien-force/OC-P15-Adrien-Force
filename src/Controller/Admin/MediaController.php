@@ -75,13 +75,13 @@ class MediaController extends AbstractController
     }
 
     #[Route(path: '/admin/media/delete/{id}', name: 'admin_media_delete')]
-    public function delete(int $id): RedirectResponse
+    public function delete(Media $media): RedirectResponse
     {
-        $media = $this->em->getRepository(Media::class)->find($id);
         $this->em->remove($media);
         $this->em->flush();
         unlink($media->getPath());
 
         return $this->redirectToRoute('admin_media_index');
     }
+
 }
