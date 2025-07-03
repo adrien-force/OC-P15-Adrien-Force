@@ -5,11 +5,9 @@ namespace App\Tests\Fonctionnal\Form;
 use App\Entity\User;
 use App\Repository\UserRepository;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
-use Symfony\Component\Security\Core\User\UserInterface;
 
 class MediaFormTest extends WebTestCase
 {
-    private UserInterface $user;
     private UserRepository $userRepository;
 
     private User $adminUser;
