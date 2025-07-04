@@ -48,7 +48,7 @@ class MediaVoter extends Voter
     }
     private function canEdit(Media $subject, User $user, Vote $vote = null): bool
     {
-        if (!$this->isAuthor($subject, $user)) {
+        if (!$this->isAuthorOrAdmin($subject, $user)) {
             $vote?->addReason('Seulement l\'auteur à accès à cette ressource');
             return false;
         }
@@ -60,7 +60,7 @@ class MediaVoter extends Voter
         return $this->canEdit($subject, $user, $vote);
     }
 
-    private function isAuthor(Media $subject, User $user): bool
+    private function isAuthorOrAdmin(Media $subject, User $user): bool
     {
         return $user->isAdmin() || ($subject->getUser()?->getId() === $user->getId());
     }
