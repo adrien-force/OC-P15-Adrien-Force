@@ -1,4 +1,4 @@
-.PHONY: docker phpstan rector rector-fix reset-db restore-db db update-schema lint migration migrate
+.PHONY: docker phpstan rector rector-fix reset-db restore-db db update-schema lint migration migrate test
 
 restore-db:
 	@for f in docker/postgres/*.sql; do \
@@ -41,3 +41,6 @@ migration:
 
 migrate:
 	php bin/console doctrine:migrations:migrate
+
+test:
+	./bin/phpunit
