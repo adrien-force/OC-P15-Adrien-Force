@@ -30,7 +30,7 @@ class MediaController extends AbstractController
 
         $criteria = [];
 
-        if (!$this->isGranted(MediaVoter::VIEW, Media::class)) {
+        if (!$this->isGranted(User::ADMIN_ROLE)) {
             $criteria['user'] = $this->getUser();
         }
 
