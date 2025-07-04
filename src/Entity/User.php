@@ -103,11 +103,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         $this->medias = $medias;
     }
 
-    public function isAdmin(): bool
-    {
-        return in_array(self::ADMIN_ROLE, $this->getRoles(), true);
-    }
-
     public function getRoles(): array
     {
         return $this->roles;

@@ -5,6 +5,7 @@ namespace App\Security\Voter;
 use App\Entity\Album;
 use App\Entity\User;
 use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
+use Symfony\Component\Security\Core\Authorization\AccessDecisionManagerInterface;
 use Symfony\Component\Security\Core\Authorization\Voter\Vote;
 use Symfony\Component\Security\Core\Authorization\Voter\Voter;
 
@@ -14,6 +15,10 @@ use Symfony\Component\Security\Core\Authorization\Voter\Voter;
  */
 class AlbumVoter extends Voter
 {
+    public function __construct(
+        private readonly AccessDecisionManagerInterface $accessDecisionManager
+    ) {
+    }
 
     public const VIEW = 'view';
     public const EDIT = 'edit';
@@ -37,8 +42,8 @@ class AlbumVoter extends Voter
 
         return match ($attribute) {
             self::VIEW => $this->canView(),
-            self::EDIT => $this->canEdit($user, $vote ?: null),
-            self::DELETE => $this->canDelete($user, $vote ?: null),
+            self::EDIT => $this->canEdit($token, $vote ?: null),
+            self::DELETE => $this->canDelete($token, $vote ?: null),
             default => false,
         };
     }
@@ -47,17 +52,17 @@ class AlbumVoter extends Voter
     {
         return true;
     }
-    private function canEdit(User $user, Vote $vote = null): bool
+    private function canEdit(TokenInterface $token, Vote $vote = null): bool
     {
-        if (!($user->isAdmin())) {
+        if (!($this->accessDecisionManager->decide($token, [User::ADMIN_ROLE]))) {
             $vote?->addReason('Seul un administrateur est autorisé à modifier cette ressource.');
             return false;
         }
 
         return true;
     }
-    private function canDelete(User $user, Vote $vote = null): bool
+    private function canDelete(TokenInterface $token, Vote $vote = null): bool
     {
-        return $this->canEdit($user, $vote ?: null);
+        return $this->canEdit($token, $vote ?: null);
     }
 }

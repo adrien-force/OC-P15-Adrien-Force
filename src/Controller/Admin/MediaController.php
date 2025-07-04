@@ -5,6 +5,7 @@ namespace App\Controller\Admin;
 use App\Entity\Media;
 use App\Entity\User;
 use App\Form\MediaType;
+use App\Security\Voter\MediaVoter;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Form\Exception\LogicException;
@@ -17,18 +18,19 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 class MediaController extends AbstractController
 {
     public function __construct(
-        private EntityManagerInterface $em,
+        private readonly EntityManagerInterface $em,
     ) {
     }
 
     #[Route(path: '/admin/media', name: 'admin_media_index')]
+    #[IsGranted(attribute: MediaVoter::VIEW, subject: Media::class)]
     public function index(Request $request): Response
     {
         $page = $request->query->getInt('page', 1);
 
         $criteria = [];
 
-        if (!$this->isGranted('ROLE_ADMIN')) {
+        if (!$this->isGranted(MediaVoter::VIEW, Media::class)) {
             $criteria['user'] = $this->getUser();
         }
 
@@ -48,6 +50,7 @@ class MediaController extends AbstractController
     }
 
     #[Route(path: '/admin/media/add', name: 'admin_media_add')]
+    #[isGranted(attribute: MediaVoter::ADD, subject: Media::class)]
     public function add(Request $request): RedirectResponse|Response
     {
         $media = new Media();
@@ -75,6 +78,7 @@ class MediaController extends AbstractController
     }
 
     #[Route(path: '/admin/media/delete/{id}', name: 'admin_media_delete')]
+    #[IsGranted(attribute: MediaVoter::DELETE, subject: Media::class)]
     public function delete(Media $media): RedirectResponse
     {
         $this->em->remove($media);
