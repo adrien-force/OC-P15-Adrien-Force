@@ -1,0 +1,6 @@
+# Role translations for French
+security:
+  role:
+    admin: "Administrateur"
+    user: "Utilisateur"
+    guest: "Invité"

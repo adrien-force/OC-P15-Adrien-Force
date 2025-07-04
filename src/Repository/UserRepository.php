@@ -12,12 +12,10 @@ use Symfony\Component\Security\Core\User\PasswordUpgraderInterface;
 /**
  * @extends ServiceEntityRepository<User>
  *
- * @phpstan-type Criteria array<string, mixed>
- * @phpstan-type OrderBy array<string,string>
  * @method User|null find($id, $lockMode = null, $lockVersion = null)
- * @method User|null findOneBy(Criteria $criteria, OrderBy $orderBy = null)
+ * @method User|null findOneBy(mixed[] $criteria, string[] $orderBy = null)
  * @method User[]    findAll()
- * @method User[]    findBy(Criteria $criteria, OrderBy $orderBy = null, $limit = null, $offset = null)
+ * @method User[]    findBy(mixed[] $criteria, string[] $orderBy = null, $limit = null, $offset = null)
  */
 class UserRepository extends ServiceEntityRepository implements PasswordUpgraderInterface
 {
@@ -56,6 +54,18 @@ class UserRepository extends ServiceEntityRepository implements PasswordUpgrader
     {
         return $this->createQueryBuilder('u')
             ->where('JSONB_CONTAINS(u.roles, :role) = true')
+            ->setParameter('role', sprintf('"%s"', $role))
+            ->getQuery()
+            ->getResult();
+    }
+
+    /**
+     * @return User[]
+     */
+    public function findWithoutRole(string $role): array
+    {
+        return $this->createQueryBuilder('u')
+            ->where('JSONB_CONTAINS(u.roles, :role) = false')
             ->setParameter('role', sprintf('"%s"', $role))
             ->getQuery()
             ->getResult();

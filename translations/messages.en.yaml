@@ -1,0 +1,6 @@
+# Role translations for English
+security:
+  role:
+    admin: "Administrator"
+    user: "User"
+    guest: "Guest"

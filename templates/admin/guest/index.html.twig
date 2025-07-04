@@ -1,0 +1,29 @@
+{% extends 'admin.html.twig' %}
+
+{% block admin %}
+    <div class="d-flex justify-content-between align-items-center">
+        <h1>Invités</h1>
+        <a href="{{ path('admin_guest_manage') }}" class="btn btn-primary">Gérer les invités</a>
+    </div>
+    <table class="table">
+        <thead>
+        <tr>
+            <th>Nom</th>
+            <th>Email</th>
+            <th>Actions</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for guest in guests %}
+            <tr>
+                <td>{{ guest.name }}</td>
+                <td>{{ guest.email }}</td>
+                <td>
+                    <a href="{{ path('admin_guest_update', {id: guest.id}) }}" class="btn btn-warning">Modifier</a>
+                    <a href="{{ path('admin_guest_remove_role', {id: guest.id}) }}" class="btn btn-danger">Retirer le rôle invité</a>
+                </td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+{% endblock %}

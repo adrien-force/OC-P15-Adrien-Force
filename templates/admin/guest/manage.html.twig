@@ -1,0 +1,38 @@
+{% extends 'admin.html.twig' %}
+
+{% block admin %}
+    <div class="d-flex justify-content-between align-items-center">
+        <h1>Gérer les invités</h1>
+        <a href="{{ path('admin_guest_index') }}" class="btn btn-primary">Retour à la liste des invités</a>
+    </div>
+    <table class="table">
+        <thead>
+        <tr>
+            <th>Nom</th>
+            <th>Email</th>
+            <th>Rôles</th>
+            <th>Actions</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for user in users %}
+            <tr>
+                <td>{{ user.name }}</td>
+                <td>{{ user.email }}</td>
+                <td>
+                    {% for role in user.roles %}
+                        {{ ('security.role.' ~ role|lower|replace({'role_': ''})) | trans }}{% if not loop.last %}, {% endif %}
+                    {% endfor %}
+                </td>
+                <td>
+                    {% if 'ROLE_GUEST' not in user.roles %}
+                        <a href="{{ path('admin_guest_add_role', {id: user.id}) }}" class="btn btn-success">Ajouter le rôle invité</a>
+                    {% else %}
+                        <span class="badge bg-info">Déjà invité</span>
+                    {% endif %}
+                </td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+{% endblock %}
