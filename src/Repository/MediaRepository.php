@@ -1,4 +1,4 @@
-<?php /** @noinspection ALL */
+<?php
 
 namespace App\Repository;
 
@@ -9,13 +9,10 @@ use Doctrine\Persistence\ManagerRegistry;
 /**
  * @extends ServiceEntityRepository<Media>
  *
- * @phpstan-type Criteria array<string, mixed>
- * @phpstan-type OrderBy array<string,string>
- *
  * @method Media|null find($id, $lockMode = null, $lockVersion = null)
- * @method Media|null findOneBy(Criteria $criteria, OrderBy $orderBy = null)
+ * @method Media|null findOneBy(mixed[] $criteria, string[] $orderBy = null)
  * @method Media[]    findAll()
- * @method Media[]    findBy(Criteria $criteria, OrderBy $orderBy = null, $limit = null, $offset = null)
+ * @method Media[]    findBy(mixed[] $criteria, string[] $orderBy = null, $limit = null, $offset = null)
  */
 class MediaRepository extends ServiceEntityRepository
 {
