@@ -23,7 +23,6 @@ class MediaController extends AbstractController
     }
 
     #[Route(path: '/admin/media', name: 'admin_media_index')]
-    #[IsGranted(attribute: MediaVoter::VIEW, subject: Media::class)]
     public function index(Request $request): Response
     {
         $page = $request->query->getInt('page', 1);
@@ -50,16 +49,14 @@ class MediaController extends AbstractController
     }
 
     #[Route(path: '/admin/media/add', name: 'admin_media_add')]
-    #[isGranted(attribute: MediaVoter::ADD, subject: Media::class)]
     public function add(Request $request): RedirectResponse|Response
     {
         $media = new Media();
-        $form = $this->createForm(MediaType::class, $media, ['is_admin' => $this->isGranted('ROLE_ADMIN')]);
+        $form = $this->createForm(MediaType::class, $media, ['is_admin' => $this->isGranted(User::ADMIN_ROLE)]);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid() && $media->getFile()) {
-            //Todo: fix here
-            if (!$this->isGranted('ROLE_ADMIN')) {
+            if (!$this->isGranted(User::ADMIN_ROLE)) {
                 if (($user = $this->getUser()) instanceof User) {
                     $media->setUser($user);
                 } else {
@@ -78,7 +75,6 @@ class MediaController extends AbstractController
     }
 
     #[Route(path: '/admin/media/delete/{id}', name: 'admin_media_delete')]
-    #[IsGranted(attribute: MediaVoter::DELETE, subject: Media::class)]
     public function delete(Media $media): RedirectResponse
     {
         $this->em->remove($media);
