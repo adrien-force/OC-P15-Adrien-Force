@@ -26,7 +26,7 @@ class HomeController extends AbstractController
     #[Route(path: '/guests', name: 'guests')]
     public function guests(): Response
     {
-        $guests = $this->em->getRepository(User::class)->findOneByRole(User::ADMIN_ROLE);
+        $guests = $this->em->getRepository(User::class)->findByRole(User::GUEST_ROLE);
 
         return $this->render('front/guests.html.twig', [
             'guests' => $guests,
@@ -45,7 +45,7 @@ class HomeController extends AbstractController
     public function portfolio(?Album $album): Response
     {
         $albums = $this->em->getRepository(Album::class)->findAll();
-        $user = $this->em->getRepository(User::class)->findOneByRole(User::ADMIN_ROLE);
+        $user = $this->getUser();
 
         $medias = $album instanceof Album
             ? $this->em->getRepository(Media::class)->findByAlbum($album)
