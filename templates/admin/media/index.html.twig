@@ -1,7 +1,9 @@
 {% extends 'admin.html.twig' %}
 
 {% block admin %}
-    <div class="d-flex justify-content-between align-items-center">
+    <div class="d-flex justify-content-between row min-vh-100">
+    <div>
+    <div class="d-flex justify-content-between align-items-center position-sticky top-0 bg-blur p-4 bg-white">
         <h1>Medias</h1>
         <a href="{{ path('admin_media_add') }}" class="btn btn-primary">Ajouter</a>
     </div>
@@ -34,8 +36,9 @@
         </tbody>
     </table>
     {% set totalPages = (total / 50)|round(0, 'ceil') %}
+    </div>
 
-    <nav aria-label="Page navigation">
+    <nav aria-label="Page navigation" class="position-sticky bottom-0 mt-auto">
         <ul class="pagination">
             {% if page > 1 %}
                 <li class="page-item">
@@ -62,4 +65,5 @@
             {% endif %}
         </ul>
     </nav>
+    </div>
 {% endblock %}

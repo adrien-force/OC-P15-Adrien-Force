@@ -1,7 +1,8 @@
 {% extends 'admin.html.twig' %}
 
 {% block admin %}
-    <div class="d-flex justify-content-between align-items-center">
+
+    <div class="d-flex justify-content-between align-items-center position-sticky top-0 bg-blur p-4 bg-white">
         <h1>Gérer les invités</h1>
         <a href="{{ path('admin_guest_index') }}" class="btn btn-primary">Retour à la liste des invités</a>
     </div>

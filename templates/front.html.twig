@@ -27,14 +27,12 @@
                         <li class="nav-item">
                             <a class="nav-link" href="{{ path('about') }}">Qui suis-je ?</a>
                         </li>
-                        {% if is_granted('ROLE_ADMIN') %}
+                        {% if is_granted('ROLE_ADMIN') or is_granted('ROLE_GUEST') %}
                             <li class="nav-item">
                                 <a class="nav-link" href="{{ path('admin_media_index') }}">Admin</a>
                             </li>
-                            <li class="nav-item">
-                                <a class="nav-link" href="{{ path('admin_logout') }}">Se deconnecter</a>
-                            </li>
-                        {% elseif is_granted('ROLE_USER') %}
+                        {% endif %}
+                        {% if is_granted('IS_AUTHENTICATED_FULLY') %}
                             <li class="nav-item">
                                 <a class="nav-link" href="{{ path('admin_logout') }}">Se deconnecter</a>
                             </li>
