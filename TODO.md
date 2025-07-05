@@ -11,7 +11,7 @@
 - [X] Correct PHPStan LVL6 issues
 - [ ] Fix current issues (+ add tests to them)
 - [ ] Create fixtures
-- [ ] Add invitee management feature
+- [X] Add invitee management feature
 - [ ] Add remaining unit and functional tests
 - [ ] Add integration tests
 - [ ] Create CI pipeline
