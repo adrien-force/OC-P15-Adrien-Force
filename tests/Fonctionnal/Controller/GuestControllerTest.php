@@ -132,6 +132,26 @@ class GuestControllerTest extends WebTestCase
         $this->assertEquals('Updated Description', $guestUser->getDescription());
     }
 
+    public function testThatUpdateGuestFunctionnalityRedirectsWhenUserIsNotGuest(): void
+    {
+        $client = static::getClient();
+        $client->loginUser($this->adminUser);
+
+        $guestUsers = $this->userRepository->findByRole(User::USER_ROLE);
+
+        if (empty($guestUsers)) {
+            $this->markTestSkipped('No guest users available for testing');
+        }
+
+        $guestUser = $guestUsers[0];
+
+        $crawler = $client->request('GET', '/admin/guest/update/' . $guestUser->getId());
+
+        self::assertResponseStatusCodeSame(302);
+        self::assertResponseRedirects('/admin/guest/manage');
+        $client->followRedirect();
+    }
+
     public function testRemoveRoleFunctionality(): void
     {
         $client = static::getClient();

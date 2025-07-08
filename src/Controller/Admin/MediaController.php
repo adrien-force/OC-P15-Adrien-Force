@@ -5,7 +5,6 @@ namespace App\Controller\Admin;
 use App\Entity\Media;
 use App\Entity\User;
 use App\Form\MediaType;
-use App\Security\Voter\MediaVoter;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Form\Exception\LogicException;
@@ -13,7 +12,6 @@ use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
-use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 class MediaController extends AbstractController
 {
@@ -54,13 +52,10 @@ class MediaController extends AbstractController
         $media = new Media();
         $form = $this->createForm(MediaType::class, $media, ['is_admin' => $this->isGranted(User::ADMIN_ROLE)]);
         $form->handleRequest($request);
-
         if ($form->isSubmitted() && $form->isValid() && $media->getFile()) {
             if (!$this->isGranted(User::ADMIN_ROLE)) {
                 if (($user = $this->getUser()) instanceof User) {
                     $media->setUser($user);
-                } else {
-                    throw new LogicException('You must be logged in to add media.');
                 }
             }
             $media->setPath('uploads/'.md5(uniqid()).'.'.$media->getFile()->guessExtension());

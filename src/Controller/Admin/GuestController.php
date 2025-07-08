@@ -54,11 +54,10 @@ class GuestController extends AbstractController
     }
 
     #[Route(path: '/admin/guest/update/{id}', name: 'admin_guest_update')]
-    #[isGranted(User::ADMIN_ROLE)]
     public function update(Request $request, User $guest): RedirectResponse|Response
     {
         if (!in_array(User::GUEST_ROLE, $guest->getRoles(), true)) {
-            throw new LockedException('User already has guest role, this is not allowed.');
+            return $this->redirectToRoute('admin_guest_manage');
         }
 
         $form = $this->createForm(GuestType::class, $guest, ['require_password' => false]);
