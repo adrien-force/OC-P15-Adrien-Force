@@ -44,26 +44,6 @@ class GuestType extends AbstractType
                 'required' => false,
             ]
         );
-
-        // Only add password field for new guests (when the User doesn't have an ID yet)
-        if ($options['require_password']) {
-            $builder->add(
-                'password',
-                RepeatedType::class,
-                [
-                    'type' => PasswordType::class,
-                    'first_options' => [
-                        'label' => 'Mot de passe',
-                        'attr' => ['placeholder' => 'Entrez le mot de passe'],
-                    ],
-                    'second_options' => [
-                        'label' => 'Confirmer le mot de passe',
-                        'attr' => ['placeholder' => 'Confirmez le mot de passe'],
-                    ],
-                    'invalid_message' => 'Les mots de passe doivent correspondre.',
-                ]
-            );
-        }
     }
 
     public function configureOptions(OptionsResolver $resolver): void

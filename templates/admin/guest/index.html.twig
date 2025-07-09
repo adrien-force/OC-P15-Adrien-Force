@@ -15,7 +15,7 @@
         </thead>
         <tbody>
         {% for guest in guests %}
-            <tr>
+            <tr id="guest-row-{{ guest.id }}">
                 <td>{{ guest.name }}</td>
                 <td>{{ guest.email }}</td>
                 <td>

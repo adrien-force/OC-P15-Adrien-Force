@@ -7,6 +7,7 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Doctrine\ORM\Mapping\GeneratedValue;
+use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Validator\Constraints as Assert;
@@ -33,7 +34,9 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     private ?string $description;
 
     #[ORM\Column(length: 180, unique: true)]
-    private string $email;
+    #[Assert\NotBlank]
+    #[Assert\Email]
+    private ?string $email = null;
 
     #[ORM\Column(type: 'string')]
     #[Assert\PasswordStrength(minScore: Assert\PasswordStrength::STRENGTH_WEAK)]
