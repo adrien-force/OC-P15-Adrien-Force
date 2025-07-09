@@ -14,7 +14,7 @@
         </thead>
         <tbody>
         {% for album in albums %}
-            <tr>
+            <tr id="album-row-{{ album.id }}">
                 <td>{{ album.name }}</td>
                 <td>
                     <a href="{{ path('admin_album_update', {id: album.id}) }}" class="btn btn-warning">Modifier</a>
