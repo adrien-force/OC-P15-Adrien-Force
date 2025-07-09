@@ -25,6 +25,9 @@ class SecurityController extends AbstractController
         ]);
     }
 
+    /**
+     * @codeCoverageIgnore
+     */
     #[Route(path: '/logout', name: 'admin_logout')]
     #[isGranted('IS_AUTHENTICATED_REMEMBERED')]
     public function logout(): void {}
