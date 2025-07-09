@@ -2,7 +2,9 @@
 
 namespace App\Tests\Fonctionnal\Controller;
 
+use App\Entity\Album;
 use App\Entity\User;
+use App\Repository\AlbumRepository;
 use App\Repository\MediaRepository;
 use App\Repository\UserRepository;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
@@ -13,9 +15,11 @@ class MediaControllerTest extends WebTestCase
 
     private UserRepository $userRepository;
     private MediaRepository $mediaRepository;
+    private AlbumRepository $albumRepository;
     private User $adminUser;
     private User $baseUser;
     private User $guestUser;
+    private Album $album;
 
     protected function setUp(): void
     {
@@ -25,11 +29,13 @@ class MediaControllerTest extends WebTestCase
 
         $this->userRepository = static::getContainer()->get(UserRepository::class);
         $this->mediaRepository = static::getContainer()->get(MediaRepository::class);
+        $this->albumRepository = static::getContainer()->get(AlbumRepository::class);
         $this->adminUser = $this->userRepository->findByRole(User::ADMIN_ROLE)[0];
         $this->baseUser = $this->userRepository->findByRole(User::USER_ROLE)[0];
 
         $guestUsers = $this->userRepository->findByRole(User::GUEST_ROLE);
         $this->guestUser = !empty($guestUsers) ? $guestUsers[0] : $this->baseUser;
+        $this->album = $this->albumRepository->findAll()[0];
     }
     public function testIndex(): void
     {
@@ -46,7 +52,7 @@ class MediaControllerTest extends WebTestCase
     public function testAddMedia(): void
     {
         $client = static::getClient();
-        $client->loginUser($this->baseUser);
+        $client->loginUser($this->adminUser);
 
         $client->request('GET', '/admin/media/add');
 
@@ -62,6 +68,8 @@ class MediaControllerTest extends WebTestCase
         $client->submitForm('Ajouter', [
             'media[title]' => 'Test Image',
             'media[file]' => $uploadedFile,
+            'media[album]' => $this->album->getId(),
+            'media[user]' => $this->adminUser->getId(),
         ]);
 
         $client->followRedirect();
@@ -72,6 +80,8 @@ class MediaControllerTest extends WebTestCase
         $image = $this->mediaRepository->findOneBy(['title' => 'Test Image']);
         self::assertNotNull($image);
         self::assertNotNull($image->getUser());
+        self::assertNotNull($image->getAlbum());
+        self::assertSame($this->album->getId(), $image->getAlbum()->getId());
 
         $client->request('GET', '/admin/media/delete/'.$image->getId());
     }
