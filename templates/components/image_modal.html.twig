@@ -1,0 +1,50 @@
+{#
+  Image Modal Component
+  Displays an image in a modal window
+  Using Bootstrap 5
+
+  Usage:
+  {% include 'components/image_modal.html.twig' %}
+
+  Then use a button with:
+  <button type="button" class="image-preview-btn" data-bs-toggle="modal" data-bs-target="#imageModal"
+          data-image-src="IMAGE_PATH" data-image-title="IMAGE_TITLE">
+      <img src="THUMBNAIL_PATH" width="75" alt="IMAGE_TITLE" />
+  </button>
+
+  See media/index.html.twig for an example
+#}
+
+<!-- Modal -->
+<div class="modal fade" id="imageModal" tabindex="-1" aria-labelledby="imageModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-centered" style="max-width: 80%; width: fit-content;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="imageModalLabel">Titre de l'image</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body text-center">
+                <img src="" id="modalImage" class="img-fluid" alt="Aperçu de l'image">
+            </div>
+        </div>
+    </div>
+</div>
+
+{#
+Here we use some JavaScript because using base HTML with bootstrap modal opens XSS vulnerability
+#}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        var previewButtons = document.querySelectorAll('.image-preview-btn');
+
+        previewButtons.forEach(function(button) {
+            button.addEventListener('click', function() {
+                var imageSrc = this.getAttribute('data-image-src');
+                var imageTitle = this.getAttribute('data-image-title');
+
+                document.getElementById('modalImage').src = imageSrc;
+                document.getElementById('imageModalLabel').textContent = imageTitle;
+            });
+        });
+    });
+</script>
