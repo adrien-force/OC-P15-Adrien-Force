@@ -72,6 +72,8 @@ class MediaControllerTest extends WebTestCase
         $image = $this->mediaRepository->findOneBy(['title' => 'Test Image']);
         self::assertNotNull($image);
         self::assertNotNull($image->getUser());
+
+        $client->request('GET', '/admin/media/delete/'.$image->getId());
     }
 
     public function testDeleteMedia(): void
