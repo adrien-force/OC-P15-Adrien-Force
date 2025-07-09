@@ -98,14 +98,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this->medias;
     }
 
-    /**
-     * @param Collection<int, Media> $medias
-     */
-    public function setMedias(Collection $medias): void
-    {
-        $this->medias = $medias;
-    }
-
     public function getRoles(): array
     {
         return $this->roles;
