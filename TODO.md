@@ -9,11 +9,11 @@
 - [X] Update Symfony to 7x using rector
 - [X] Fix User registration and login
 - [X] Correct PHPStan LVL6 issues
-- [ ] Fix current issues (+ add tests to them)
+- [X] Fix current issues (+ add tests to them)
 - [ ] Create fixtures
 - [X] Add invitee management feature
-- [ ] Add remaining unit and functional tests
-- [ ] Add integration tests
+- [X] Add remaining unit and functional tests
+- [X] Add integration tests
 - [ ] Create CI pipeline
 - [ ] Correct PHPStan LVL10 issues
 - [ ] Write performance report

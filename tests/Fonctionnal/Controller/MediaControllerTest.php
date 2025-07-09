@@ -49,7 +49,7 @@ class MediaControllerTest extends WebTestCase
         self::assertResponseIsSuccessful();
     }
 
-    public function testAddMedia(): void
+    public function testAddMediaForAdmin(): void
     {
         $client = static::getClient();
         $client->loginUser($this->adminUser);
@@ -82,6 +82,39 @@ class MediaControllerTest extends WebTestCase
         self::assertNotNull($image->getUser());
         self::assertNotNull($image->getAlbum());
         self::assertSame($this->album->getId(), $image->getAlbum()->getId());
+
+        $client->request('GET', '/admin/media/delete/'.$image->getId());
+    }
+
+    public function testAddMediaForUser(): void
+    {
+        $client = static::getClient();
+        $client->loginUser($this->baseUser);
+
+        $client->request('GET', '/admin/media/add');
+
+        $filePath = __DIR__.'/MediaContent/img.jpg';
+        $uploadedFile = new UploadedFile(
+            $filePath,
+            'img.jpg',
+            'image/jpeg',
+            null,
+            true // test mode
+        );
+
+        $client->submitForm('Ajouter', [
+            'media[title]' => 'Test Image',
+            'media[file]' => $uploadedFile,
+        ]);
+
+        $client->followRedirect();
+
+        self::assertResponseIsSuccessful();
+
+
+        $image = $this->mediaRepository->findOneBy(['title' => 'Test Image']);
+        self::assertNotNull($image);
+        self::assertNotNull($image->getUser());
 
         $client->request('GET', '/admin/media/delete/'.$image->getId());
     }
