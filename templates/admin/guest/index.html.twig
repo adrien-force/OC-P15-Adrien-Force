@@ -5,7 +5,7 @@
         <h1>Invités</h1>
         <a href="{{ path('admin_guest_manage') }}" class="btn btn-primary">Gérer les invités</a>
     </div>
-    <table class="table">
+    <table class="table table-hover table-responsive">
         <thead>
         <tr>
             <th>Nom</th>
@@ -20,10 +20,29 @@
                 <td>{{ guest.email }}</td>
                 <td>
                     <a href="{{ path('admin_guest_update', {id: guest.id}) }}" class="btn btn-warning">Modifier</a>
-                    <a href="{{ path('admin_guest_remove_role', {id: guest.id}) }}" class="btn btn-danger">Retirer le rôle invité</a>
+                    <button type="button"
+                            class="btn btn-danger"
+                            data-bs-toggle="modal"
+                            data-bs-target="#confirmModal"
+                            data-bs-confirm-action="{{ path('admin_guest_remove_role', {id: guest.id}) }}"
+                            data-bs-confirm-message="Êtes-vous sûr de vouloir retirer le rôle invité à {{ guest.name }} ?">
+                        Retirer le rôle invité
+                    </button>
+                    <button type="button"
+                            class="btn btn-danger"
+                            data-bs-toggle="modal"
+                            data-bs-target="#confirmModal"
+                            data-bs-confirm-action="{{ path('admin_guest_delete', {id: guest.id}) }}"
+                            data-bs-confirm-message="Êtes-vous sûr de vouloir supprimer le compte invité {{ guest.name }} ?
+                            Cette action est irréversible.">
+                        Supprimer le compte invité
+                    </button>
                 </td>
             </tr>
         {% endfor %}
         </tbody>
     </table>
+
+    {# Inclusion de la modale de confirmation #}
+    {% include 'components/confirmation_modal.html.twig' %}
 {% endblock %}

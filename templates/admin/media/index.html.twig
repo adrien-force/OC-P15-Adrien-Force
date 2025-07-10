@@ -7,7 +7,7 @@
         <h1>Medias</h1>
         <a href="{{ path('admin_media_add') }}" class="btn btn-primary">Ajouter</a>
     </div>
-    <table class="table">
+    <table class="table table-hover table-responsive">
         <thead>
             <tr>
                 <th>Image</th>
@@ -33,8 +33,8 @@
                     </td>
                     <td>{{ media.title }}</td>
                     {% if is_granted('ROLE_ADMIN') %}
-                        <td>{{ media.user.name }}</td>
-                        <td>{{ media.album ? media.album.name : '' }}</td>
+                        <td>{{ media.user ? media.album.name : 'N/A' }}</td>
+                        <td>{{ media.album ? media.album.name : 'N/A' }}</td>
                     {% endif %}
                     <td>
                         <a href="{{ path('admin_media_delete', {id: media.id}) }}" class="btn btn-danger">Supprimer</a>
