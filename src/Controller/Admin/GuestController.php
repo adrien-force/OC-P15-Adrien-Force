@@ -4,6 +4,7 @@ namespace App\Controller\Admin;
 
 use App\Entity\User;
 use App\Form\GuestType;
+use App\Repository\MediaRepository;
 use App\Repository\UserRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -18,8 +19,8 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 class GuestController extends AbstractController
 {
     public function __construct(
-        private readonly UserRepository $userRepository,
-        private readonly EntityManagerInterface $em,
+        private readonly UserRepository         $userRepository,
+        private readonly EntityManagerInterface $em, private readonly MediaRepository $mediaRepository,
     ) {
     }
 
@@ -79,6 +80,24 @@ class GuestController extends AbstractController
         if (in_array(User::GUEST_ROLE, $guest->getRoles(), true)) {
             $guest->removeRole(User::GUEST_ROLE);
             $this->em->flush();
+        }
+
+        return $this->redirectToRoute('admin_guest_index');
+    }
+
+    #[Route(path: '/admin/guest/delete/{id}', name: 'admin_guest_delete')]
+    public function delete(User $guest): RedirectResponse
+    {
+        if (in_array(User::GUEST_ROLE, $guest->getRoles(), true)) {
+
+            $medias = $this->mediaRepository->findBy(['user' => $guest]);
+            foreach ($medias as $media) {
+                $media->setUser(null);
+                $this->em->persist($media);
+            }
+            $this->em->remove($guest);
+            $this->em->flush();
+
         }
 
         return $this->redirectToRoute('admin_guest_index');
