@@ -1,4 +1,4 @@
-.PHONY: docker phpstan rector rector-fix reset-db restore-db db update-schema lint migration migrate test
+.PHONY: docker phpstan rector rector-fix reset-db restore-db db update-schema lint migration migrate test coverage open
 
 restore-db:
 	@for f in docker/postgres/*.sql; do \
@@ -44,3 +44,8 @@ migrate:
 
 test:
 	./bin/phpunit
+
+coverage:
+	XDEBUG_MODE=coverage vendor/bin/phpunit --coverage-html var/coverage
+	open var/coverage/index.html
+
