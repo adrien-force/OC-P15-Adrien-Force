@@ -61,4 +61,14 @@ class UserRepository extends ServiceEntityRepository implements PasswordUpgrader
             ->getQuery()
             ->getResult();
     }
+
+    public function getAllWithMedia(): array
+    {
+        return $this->createQueryBuilder('u')
+            ->leftJoin('u.medias', 'm')
+            ->addSelect('m')
+            ->getQuery()
+            ->getResult();
+
+    }
 }

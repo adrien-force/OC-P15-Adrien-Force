@@ -18,7 +18,7 @@ final class UserFixture extends Fixture
 
     public function load(ObjectManager $manager): void
     {
-        for ($users = [], $i = 0; $i < 40; ++$i) {
+        for ($users = [], $i = 0; $i < 400; ++$i) {
             /** @var User[] $users */
             $role = 0 === $i % 2 ? User::GUEST_ROLE : User::USER_ROLE;
 

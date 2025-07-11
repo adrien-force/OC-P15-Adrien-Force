@@ -5,15 +5,18 @@ namespace App\Controller;
 use App\Entity\Album;
 use App\Entity\Media;
 use App\Entity\User;
+use App\Repository\UserRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Routing\Attribute\Route;
 
 class HomeController extends AbstractController
 {
     public function __construct(
         private readonly EntityManagerInterface $em,
+        private readonly UserRepository $userRepository,
     ) {
     }
 
@@ -26,7 +29,8 @@ class HomeController extends AbstractController
     #[Route(path: '/guests', name: 'guests')]
     public function guests(): Response
     {
-        $guests = $this->em->getRepository(User::class)->findByRole(User::GUEST_ROLE);
+//        $guests = $this->em->getRepository(User::class)->findByRole(User::GUEST_ROLE);
+        $guests = $this->userRepository->getAllWithMedia();
 
         return $this->render('front/guests.html.twig', [
             'guests' => $guests,
