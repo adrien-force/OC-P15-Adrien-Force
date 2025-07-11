@@ -10,7 +10,7 @@
 - [X] Fix User registration and login
 - [X] Correct PHPStan LVL6 issues
 - [X] Fix current issues (+ add tests to them)
-- [ ] Create fixtures
+- [X] Create fixtures
 - [X] Add invitee management feature
 - [X] Add remaining unit and functional tests
 - [X] Add integration tests

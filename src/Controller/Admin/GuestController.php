@@ -8,24 +8,23 @@ use App\Repository\MediaRepository;
 use App\Repository\UserRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\Routing\Attribute\Route;
-use Symfony\Component\Security\Core\Exception\LockedException;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
-#[isGranted(User::ADMIN_ROLE)]
+#[IsGranted(User::ADMIN_ROLE)]
 class GuestController extends AbstractController
 {
     public function __construct(
-        private readonly UserRepository         $userRepository,
+        private readonly UserRepository $userRepository,
         private readonly EntityManagerInterface $em, private readonly MediaRepository $mediaRepository,
     ) {
     }
 
     #[Route(path: '/admin/guest', name: 'admin_guest_index')]
-    #[isGranted(User::ADMIN_ROLE)]
+    #[IsGranted(User::ADMIN_ROLE)]
     public function index(): Response
     {
         $guests = $this->userRepository->findByRole(User::GUEST_ROLE);
@@ -34,7 +33,7 @@ class GuestController extends AbstractController
     }
 
     #[Route(path: '/admin/guest/manage', name: 'admin_guest_manage')]
-    #[isGranted(User::ADMIN_ROLE)]
+    #[IsGranted(User::ADMIN_ROLE)]
     public function manage(): Response
     {
         $guests = $this->userRepository->findWithoutRole(User::GUEST_ROLE);
@@ -43,7 +42,7 @@ class GuestController extends AbstractController
     }
 
     #[Route(path: '/admin/guest/add-role/{id}', name: 'admin_guest_add_role')]
-    #[isGranted(User::ADMIN_ROLE)]
+    #[IsGranted(User::ADMIN_ROLE)]
     public function addRole(User $user): RedirectResponse
     {
         if (!in_array(User::GUEST_ROLE, $user->getRoles(), true)) {
@@ -74,7 +73,7 @@ class GuestController extends AbstractController
     }
 
     #[Route(path: '/admin/guest/remove-role/{id}', name: 'admin_guest_remove_role')]
-    #[isGranted(User::ADMIN_ROLE)]
+    #[IsGranted(User::ADMIN_ROLE)]
     public function removeRole(User $guest): RedirectResponse
     {
         if (in_array(User::GUEST_ROLE, $guest->getRoles(), true)) {
@@ -89,7 +88,6 @@ class GuestController extends AbstractController
     public function delete(User $guest): RedirectResponse
     {
         if (in_array(User::GUEST_ROLE, $guest->getRoles(), true)) {
-
             $medias = $this->mediaRepository->findBy(['user' => $guest]);
             foreach ($medias as $media) {
                 $media->setUser(null);
@@ -97,7 +95,6 @@ class GuestController extends AbstractController
             }
             $this->em->remove($guest);
             $this->em->flush();
-
         }
 
         return $this->redirectToRoute('admin_guest_index');

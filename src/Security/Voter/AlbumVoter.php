@@ -11,12 +11,13 @@ use Symfony\Component\Security\Core\Authorization\Voter\Voter;
 
 /**
  * @phpstan-type Attribute string
+ *
  * @extends Voter<Attribute, Album>
  */
 class AlbumVoter extends Voter
 {
     public function __construct(
-        private readonly AccessDecisionManagerInterface $accessDecisionManager
+        private readonly AccessDecisionManagerInterface $accessDecisionManager,
     ) {
     }
 
@@ -29,14 +30,17 @@ class AlbumVoter extends Voter
         if (!in_array($attribute, [self::VIEW, self::EDIT, self::DELETE])) {
             return false;
         }
+
         return $subject instanceof Album;
     }
-    protected function voteOnAttribute(string $attribute, mixed $subject, TokenInterface $token, Vote $vote = null): bool
+
+    protected function voteOnAttribute(string $attribute, mixed $subject, TokenInterface $token, ?Vote $vote = null): bool
     {
         $user = $token->getUser();
 
         if (!$user instanceof User) {
             $vote?->addReason('Vous devez être connecté pour accèder à cette ressource.');
+
             return false;
         }
 
@@ -52,16 +56,19 @@ class AlbumVoter extends Voter
     {
         return true;
     }
-    private function canEdit(TokenInterface $token, Vote $vote = null): bool
+
+    private function canEdit(TokenInterface $token, ?Vote $vote = null): bool
     {
-        if (!($this->accessDecisionManager->decide($token, [User::ADMIN_ROLE]))) {
+        if (!$this->accessDecisionManager->decide($token, [User::ADMIN_ROLE])) {
             $vote?->addReason('Seul un administrateur est autorisé à modifier cette ressource.');
+
             return false;
         }
 
         return true;
     }
-    private function canDelete(TokenInterface $token, Vote $vote = null): bool
+
+    private function canDelete(TokenInterface $token, ?Vote $vote = null): bool
     {
         return $this->canEdit($token, $vote ?: null);
     }

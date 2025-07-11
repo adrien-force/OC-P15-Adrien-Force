@@ -7,7 +7,6 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Doctrine\ORM\Mapping\GeneratedValue;
-use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Validator\Constraints as Assert;
@@ -16,11 +15,10 @@ use Symfony\Component\Validator\Constraints as Assert;
 #[ORM\Table(name: '`user`')]
 class User implements UserInterface, PasswordAuthenticatedUserInterface
 {
-
-    const ADMIN_ROLE = 'ROLE_ADMIN';
-    const USER_ROLE = 'ROLE_USER';
+    public const ADMIN_ROLE = 'ROLE_ADMIN';
+    public const USER_ROLE = 'ROLE_USER';
     /** To be used later */
-    const GUEST_ROLE = 'ROLE_GUEST';
+    public const GUEST_ROLE = 'ROLE_GUEST';
 
     #[ORM\Id]
     #[GeneratedValue(strategy: 'SEQUENCE')]
@@ -65,7 +63,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this->email;
     }
 
-    public function setEmail(string $email): static
+    public function setEmail(string $email): self
     {
         $this->email = $email;
 
@@ -77,9 +75,11 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this->name;
     }
 
-    public function setName(string $name): void
+    public function setName(string $name): self
     {
         $this->name = $name;
+
+        return $this;
     }
 
     public function getDescription(): ?string
@@ -106,6 +106,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function addRole(string $role): self
     {
         $this->roles[] = $role;
+
         return $this;
     }
 
@@ -114,6 +115,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         if (false !== $key = array_search($role, $this->roles, true)) {
             unset($this->roles[$key]);
         }
+
         return $this;
     }
 
@@ -127,9 +129,11 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return (string) $this->email;
     }
 
-    public function setPassword(string $password): void
+    public function setPassword(string $password): self
     {
         $this->password = $password;
+
+        return $this;
     }
 
     public function getPassword(): string

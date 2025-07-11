@@ -45,11 +45,10 @@ class HomeController extends AbstractController
     public function portfolio(?Album $album): Response
     {
         $albums = $this->em->getRepository(Album::class)->findAll();
-        $user = $this->getUser();
 
         $medias = $album instanceof Album
             ? $this->em->getRepository(Media::class)->findByAlbum($album)
-            : $this->em->getRepository(Media::class)->findByUser($user);
+        : $this->em->getRepository(Media::class)->findAll();
 
         return $this->render('front/portfolio.html.twig', [
             'albums' => $albums,

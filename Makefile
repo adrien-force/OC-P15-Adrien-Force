@@ -1,4 +1,4 @@
-.PHONY: docker phpstan rector rector-fix reset-db restore-db db update-schema lint migration migrate test coverage open
+.PHONY: composer docker phpstan rector rector-fix reset-db restore-db db update-schema lint migration migrate test coverage open reinstall fixture
 
 restore-db:
 	@for f in docker/postgres/*.sql; do \
@@ -23,6 +23,9 @@ docker:
 	@echo "Starting Docker containers..."
 	docker-compose up -d --force-recreate
 
+composer:
+	@echo "Installing Composer dependencies..."
+	composer install --no-interaction
 
 phpstan:
 	vendor/bin/phpstan analyse src --memory-limit=1G
@@ -49,3 +52,14 @@ coverage:
 	XDEBUG_MODE=coverage vendor/bin/phpunit --coverage-html var/coverage
 	open var/coverage/index.html
 
+reinstall: composer
+	symfony console doctrine:database:drop --force --if-exists
+	symfony console doctrine:database:create
+	symfony console doctrine:migrations:migrate --no-interaction
+	symfony console doctrine:fixtures:load --no-interaction
+	symfony console cache:clear
+	symfony console cache:warmup
+
+fixture:
+	rm -rf /public/uploads/
+	symfony console doctrine:fixtures:load --no-interaction

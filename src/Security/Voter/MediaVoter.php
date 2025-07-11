@@ -4,7 +4,6 @@ namespace App\Security\Voter;
 
 use App\Entity\Media;
 use App\Entity\User;
-use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
 use Symfony\Component\Security\Core\Authorization\AccessDecisionManagerInterface;
 use Symfony\Component\Security\Core\Authorization\Voter\Vote;
@@ -12,12 +11,13 @@ use Symfony\Component\Security\Core\Authorization\Voter\Voter;
 
 /**
  * @phpstan-type Attribute string
+ *
  * @extends Voter<Attribute, Media>
  */
 class MediaVoter extends Voter
 {
     public function __construct(
-        private readonly AccessDecisionManagerInterface $accessDecisionManager
+        private readonly AccessDecisionManagerInterface $accessDecisionManager,
     ) {
     }
 
@@ -31,14 +31,17 @@ class MediaVoter extends Voter
         if (!in_array($attribute, [self::VIEW, self::EDIT, self::DELETE, self::ADD])) {
             return false;
         }
+
         return $subject instanceof Media;
     }
-    protected function voteOnAttribute(string $attribute, mixed $subject, TokenInterface $token, Vote $vote = null): bool
+
+    protected function voteOnAttribute(string $attribute, mixed $subject, TokenInterface $token, ?Vote $vote = null): bool
     {
         $user = $token->getUser();
 
         if (!$user instanceof User) {
             $vote?->addReason('Vous devez être connecté pour accèder à cette ressource.');
+
             return false;
         }
 
@@ -55,12 +58,15 @@ class MediaVoter extends Voter
     {
         return true;
     }
+
     private function canEdit(Media $subject, User $user, ?Vote $vote, TokenInterface $token): bool
     {
         if (!$this->isAuthorOrAdmin($subject, $user, $token)) {
             $vote?->addReason('Seulement l\'auteur à accès à cette ressource');
+
             return false;
         }
+
         return true;
     }
 
@@ -79,6 +85,7 @@ class MediaVoter extends Voter
     {
         if (!$this->accessDecisionManager->decide($token, [User::GUEST_ROLE, User::ADMIN_ROLE])) {
             $vote?->addReason('Seul les invités peuvent ajouter des médias.');
+
             return false;
         }
 
