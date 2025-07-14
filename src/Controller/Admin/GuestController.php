@@ -30,21 +30,24 @@ class GuestController extends AbstractController
     {
         $page = $request->query->getInt('page', 1);
         $limit = $request->query->getInt('limit', 15);
+        $search = $request->query->get('search');
 
         $guests = $this->userRepository->findAllGuestUsersPaginated(
             ['isGuest' => true],
             ['email' => 'ASC'],
             $limit,
-            $limit * ($page - 1)
+            $limit * ($page - 1),
+            $search
         );
 
-        $total = $this->userRepository->countWithCriteria(['isGuest' => true]);
+        $total = $this->userRepository->countWithCriteria(['isGuest' => true], $search);
 
         return $this->render('admin/guest/index.html.twig', [
             'guests' => $guests,
             'total' => $total,
             'page' => $page,
             'limit' => $limit,
+            'search' => $search,
             ]);
     }
 

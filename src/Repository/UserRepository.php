@@ -89,24 +89,35 @@ class UserRepository extends ServiceEntityRepository implements PasswordUpgrader
     }
 
     /**
-     * Finds user with pagination
+     * Finds user with pagination and search capabilities
      *
-     * @param array<string, string> $criteria Filtering criteria
+     * @param array<string, mixed> $criteria Filtering criteria
      * @param array{id: string} $orderBy Order options
      * @param int $limit Max results
      * @param int $offset Result offset
-     * @return User[] Returns an array of Media objects
+     * @param string|null $search Search term for name or email
+     * @return User[] Returns an array of User objects
      */
-    public function findAllGuestUsersPaginated(array $criteria = [], array $orderBy = ['id' => 'ASC'], int $limit = 25, int $offset = 0): array
+    public function findAllGuestUsersPaginated(array $criteria = [], array $orderBy = ['id' => 'ASC'], int $limit = 25, int $offset = 0, ?string $search = null): array
     {
         $qb = $this->createQueryBuilder('u')
             ->where('u.isGuest = true');
 
-        foreach ($criteria as $field => $value) {
-            $qb->andWhere("u.$field = :$field")
-               ->setParameter($field, $value);
+        // Add search capability
+        if ($search) {
+            $qb->andWhere('(u.name LIKE :search OR u.email LIKE :search)')
+               ->setParameter('search', '%' . $search . '%');
         }
 
+        // Add criteria if provided
+        foreach ($criteria as $field => $value) {
+            if ($field !== 'isGuest') { // isGuest already handled in base where clause
+                $qb->andWhere("u.$field = :$field")
+                   ->setParameter($field, $value);
+            }
+        }
+
+        // Add sorting
         foreach ($orderBy as $field => $direction) {
             $qb->addOrderBy("u.$field", $direction);
         }
@@ -119,20 +130,30 @@ class UserRepository extends ServiceEntityRepository implements PasswordUpgrader
     }
 
     /**
-     * Count total User matching criteria
+     * Count total User matching criteria and search term
      *
-     * @param array<string, string> $criteria Filtering criteria
+     * @param array<string, mixed> $criteria Filtering criteria
+     * @param string|null $search Search term for name or email
      * @return int Total count
      */
-    public function countWithCriteria(array $criteria = []): int
+    public function countWithCriteria(array $criteria = [], ?string $search = null): int
     {
         $qb = $this->createQueryBuilder('u')
             ->select('COUNT(u.id)')
             ->where('u.isGuest = true');
 
+        // Add search capability
+        if ($search) {
+            $qb->andWhere('(u.name LIKE :search OR u.email LIKE :search)')
+               ->setParameter('search', '%' . $search . '%');
+        }
+
+        // Add criteria if provided
         foreach ($criteria as $field => $value) {
-            $qb->andWhere("u.$field = :$field")
-               ->setParameter($field, $value);
+            if ($field !== 'isGuest') { // isGuest already handled in base where clause
+                $qb->andWhere("u.$field = :$field")
+                   ->setParameter($field, $value);
+            }
         }
 
         return (int) $qb
