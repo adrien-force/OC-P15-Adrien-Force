@@ -5,6 +5,7 @@ namespace App\Controller\Admin;
 use App\Entity\Media;
 use App\Entity\User;
 use App\Form\MediaType;
+use App\Repository\MediaRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\RedirectResponse;
@@ -16,6 +17,7 @@ class MediaController extends AbstractController
 {
     public function __construct(
         private readonly EntityManagerInterface $em,
+        private readonly MediaRepository $mediaRepository,
     ) {
     }
 
@@ -30,13 +32,14 @@ class MediaController extends AbstractController
             $criteria['user'] = $this->getUser();
         }
 
-        $medias = $this->em->getRepository(Media::class)->findBy(
+        $medias = $this->mediaRepository->findAllMediaPaginatedWithAlbumAndUser(
             $criteria,
             ['id' => 'ASC'],
             25,
             25 * ($page - 1)
         );
-        $total = $this->em->getRepository(Media::class)->count([]);
+
+        $total = $this->mediaRepository->countWithCriteria($criteria);
 
         return $this->render('admin/media/index.html.twig', [
             'medias' => $medias,

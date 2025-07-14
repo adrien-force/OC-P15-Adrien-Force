@@ -21,6 +21,60 @@ class MediaRepository extends ServiceEntityRepository
         parent::__construct($registry, Media::class);
     }
 
+    /**
+     * Finds media with pagination and joins on album and user
+     *
+     * @param array<string, string> $criteria Filtering criteria
+     * @param array{id: string} $orderBy Order options
+     * @param int $limit Max results
+     * @param int $offset Result offset
+     * @return Media[] Returns an array of Media objects
+     */
+    public function findAllMediaPaginatedWithAlbumAndUser(array $criteria = [], array $orderBy = ['id' => 'ASC'], int $limit = 25, int $offset = 0): array
+    {
+        $qb = $this->createQueryBuilder('m')
+            ->leftJoin('m.user', 'u')
+            ->leftJoin('m.album', 'a')
+            ->addSelect('u')
+            ->addSelect('a');
+
+        foreach ($criteria as $field => $value) {
+            $qb->andWhere("m.$field = :$field")
+               ->setParameter($field, $value);
+        }
+
+        foreach ($orderBy as $field => $direction) {
+            $qb->addOrderBy("m.$field", $direction);
+        }
+
+        return $qb
+            ->setMaxResults($limit)
+            ->setFirstResult($offset)
+            ->getQuery()
+            ->getResult();
+    }
+
+    /**
+     * Count total medias matching criteria
+     *
+     * @param array<string, string> $criteria Filtering criteria
+     * @return int Total count
+     */
+    public function countWithCriteria(array $criteria = []): int
+    {
+        $qb = $this->createQueryBuilder('m')
+            ->select('COUNT(m.id)');
+
+        foreach ($criteria as $field => $value) {
+            $qb->andWhere("m.$field = :$field")
+               ->setParameter($field, $value);
+        }
+
+        return $qb
+            ->getQuery()
+            ->getSingleScalarResult();
+    }
+
     //    /**
     //     * @return Media[] Returns an array of Media objects
     //     */
