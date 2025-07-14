@@ -51,6 +51,13 @@ p {
     background: #333;
 }
 
+/* Style personnalisé pour la pagination active */
+.custom_active .btn {
+    color: white;
+    background: #333;
+    border: 1px solid #333;
+}
+
 .home-description {
     font-weight: 300;
     font-size: 18px;

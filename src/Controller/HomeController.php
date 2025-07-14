@@ -8,8 +8,8 @@ use App\Entity\User;
 use App\Repository\UserRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Routing\Attribute\Route;
 
 class HomeController extends AbstractController
@@ -27,12 +27,28 @@ class HomeController extends AbstractController
     }
 
     #[Route(path: '/guests', name: 'guests')]
-    public function guests(): Response
+    public function guests(Request $request): Response
     {
-        $guests = $this->userRepository->findAllGuestsWithEagerMedias();
+        $page = $request->query->getInt('page', 1);
+        $limit = $request->query->getInt('limit', 15);
+        $search = $request->query->get('search');
+
+        $guests = $this->userRepository->findAllGuestUsersPaginated(
+            ['isGuest' => true],
+            ['name' => 'ASC'],
+            $limit,
+            $limit * ($page - 1),
+            $search
+        );
+
+        $total = $this->userRepository->countWithCriteria(['isGuest' => true], $search);
 
         return $this->render('front/guests.html.twig', [
             'guests' => $guests,
+            'total' => $total,
+            'page' => $page,
+            'limit' => $limit,
+            'search' => $search,
         ]);
     }
 

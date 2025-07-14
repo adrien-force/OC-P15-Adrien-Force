@@ -3,16 +3,101 @@
 {% block front %}
     <div class="row">
         <div class="col-12">
-            <h3 class="mb-5">Invités</h3>
-            <div class="guests d-flex flex-column">
-                {% for guest in guests %}
-                    <div class="guest py-5 d-flex justify-content-between align-items-center">
-                        <h4>{{ guest.name }} ({{ guest.medias|length }})</h4>
-                        <a href="{{ path('guest', {id: guest.id}) }}">découvrir</a>
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h3>Invités</h3>
+                <form class="d-flex" method="get" action="{{ path('guests') }}" style="width: 300px;">
+                    <div class="input-group">
+                        <input type="text" class="form-control" name="search" placeholder="Rechercher par nom ou email..."
+                               value="{{ search|default('') }}"
+                               style="font-size: 0.85rem; background-color: #DFECF0; border: 1px solid #B0C4C8;">
+                        <button class="btn btn-outline-dark" type="submit" title="Rechercher">
+                            <i class="bi bi-search-heart-fill"></i>
+                        </button>
+                        {% if search is defined and search %}
+                            <a href="{{ path('guests') }}" class="btn btn-outline-danger" title="Effacer la recherche">
+                                <i class="bi bi-trash-fill"></i>
+                            </a>
+                        {% endif %}
                     </div>
-                {% endfor %}
+                </form>
             </div>
+
+            {% if guests|length > 0 %}
+                <div class="guests d-flex flex-column">
+                    {% for guest in guests %}
+                        <div class="guest py-3 d-flex justify-content-between align-items-center">
+                            <h4>{{ guest.name }} ({{ guest.medias|length }})</h4>
+                            <a href="{{ path('guest', {id: guest.id}) }}">découvrir</a>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="alert alert-info my-5 text-center">
+                    <div class="d-flex align-items-center justify-content-center">
+                        <i class="bi bi-info-circle-fill me-3 fs-3"></i>
+                        <div>
+                            <h4 class="alert-heading">Aucun résultat</h4>
+                            <p class="mb-0">
+                                {% if search is defined and search %}
+                                    Aucun invité ne correspond à votre recherche "{{ search }}".
+                                {% else %}
+                                    Aucun invité n'a été trouvé.
+                                {% endif %}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+
+            {% set totalPages = max(1, (total / limit)|round(0, 'ceil')) %}
+
+            {% if totalPages > 1 %}
+                <nav aria-label="Page navigation" class="mt-4">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <ul class="pagination">
+                            {% if page > 1 %}
+                                <li class="page-item">
+                                    <a class="btn" href="{{ path('guests', {page: page - 1, limit: limit, search: search|default('')}) }}">Précédent</a>
+                                </li>
+                            {% endif %}
+
+                            {% for i in range(max(1, page - 2), min(totalPages, page + 2)) %}
+                                <li class="page-item {% if i == page %}custom_active{% endif %}">
+                                    <a class="btn" href="{{ path('guests', {page: i, limit: limit, search: search|default('')}) }}">{{ i }}</a>
+                                </li>
+                            {% endfor %}
+
+                            {% if page < totalPages %}
+                                <li class="page-item">
+                                    <a class="btn" href="{{ path('guests', {page: page + 1, limit: limit, search: search|default('')}) }}">Suivant</a>
+                                </li>
+                            {% endif %}
+                        </ul>
+                        <div>
+                            <form class="d-flex align-items-center" method="get" action="{{ path('guests') }}">
+                                <label for="limit" class="me-2 text-nowrap">Éléments par page:</label>
+                                <div class="d-inline-block position-relative">
+                                    <select class="form-select form-control border border-dark rounded-0"
+                                            style="background-color: transparent; font-family: 'DM Sans', sans-serif; font-size: 14px;"
+                                            id="limit"
+                                            name="limit"
+                                            onchange="this.form.submit()">
+                                        {% for option in [15, 30, 50, 100] %}
+                                            <option value="{{ option }}" {% if limit == option %}selected{% endif %}>{{ option }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                                {% if page > 1 %}
+                                    <input type="hidden" name="page" value="{{ page }}">
+                                {% endif %}
+                                {% if search is defined and search %}
+                                    <input type="hidden" name="search" value="{{ search }}">
+                                {% endif %}
+                            </form>
+                        </div>
+                    </div>
+                </nav>
+            {% endif %}
         </div>
     </div>
 {% endblock %}
-
