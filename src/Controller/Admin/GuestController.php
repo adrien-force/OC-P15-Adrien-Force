@@ -19,17 +19,33 @@ class GuestController extends AbstractController
 {
     public function __construct(
         private readonly UserRepository $userRepository,
-        private readonly EntityManagerInterface $em, private readonly MediaRepository $mediaRepository,
+        private readonly EntityManagerInterface $em,
+        private readonly MediaRepository $mediaRepository,
     ) {
     }
 
     #[Route(path: '/admin/guest', name: 'admin_guest_index')]
     #[IsGranted(User::ADMIN_ROLE)]
-    public function index(): Response
+    public function index(Request $request): Response
     {
-        $guests = $this->userRepository->findAllGuestUsers();
+        $page = $request->query->getInt('page', 1);
+        $limit = $request->query->getInt('limit', 15);
 
-        return $this->render('admin/guest/index.html.twig', ['guests' => $guests]);
+        $guests = $this->userRepository->findAllGuestUsersPaginated(
+            ['isGuest' => true],
+            ['email' => 'ASC'],
+            $limit,
+            $limit * ($page - 1)
+        );
+
+        $total = $this->userRepository->countWithCriteria(['isGuest' => true]);
+
+        return $this->render('admin/guest/index.html.twig', [
+            'guests' => $guests,
+            'total' => $total,
+            'page' => $page,
+            'limit' => $limit,
+            ]);
     }
 
     #[Route(path: '/admin/guest/manage', name: 'admin_guest_manage')]

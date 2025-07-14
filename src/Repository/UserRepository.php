@@ -88,4 +88,56 @@ class UserRepository extends ServiceEntityRepository implements PasswordUpgrader
             ->getResult();
     }
 
+    /**
+     * Finds user with pagination
+     *
+     * @param array<string, string> $criteria Filtering criteria
+     * @param array{id: string} $orderBy Order options
+     * @param int $limit Max results
+     * @param int $offset Result offset
+     * @return User[] Returns an array of Media objects
+     */
+    public function findAllGuestUsersPaginated(array $criteria = [], array $orderBy = ['id' => 'ASC'], int $limit = 25, int $offset = 0): array
+    {
+        $qb = $this->createQueryBuilder('u')
+            ->where('u.isGuest = true');
+
+        foreach ($criteria as $field => $value) {
+            $qb->andWhere("u.$field = :$field")
+               ->setParameter($field, $value);
+        }
+
+        foreach ($orderBy as $field => $direction) {
+            $qb->addOrderBy("u.$field", $direction);
+        }
+
+        return $qb
+            ->setMaxResults($limit)
+            ->setFirstResult($offset)
+            ->getQuery()
+            ->getResult();
+    }
+
+    /**
+     * Count total User matching criteria
+     *
+     * @param array<string, string> $criteria Filtering criteria
+     * @return int Total count
+     */
+    public function countWithCriteria(array $criteria = []): int
+    {
+        $qb = $this->createQueryBuilder('u')
+            ->select('COUNT(u.id)')
+            ->where('u.isGuest = true');
+
+        foreach ($criteria as $field => $value) {
+            $qb->andWhere("u.$field = :$field")
+               ->setParameter($field, $value);
+        }
+
+        return (int) $qb
+            ->getQuery()
+            ->getSingleScalarResult();
+    }
+
 }

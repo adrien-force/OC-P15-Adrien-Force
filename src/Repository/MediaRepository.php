@@ -30,7 +30,7 @@ class MediaRepository extends ServiceEntityRepository
      * @param int $offset Result offset
      * @return Media[] Returns an array of Media objects
      */
-    public function findAllMediaPaginatedWithAlbumAndUser(array $criteria = [], array $orderBy = ['id' => 'ASC'], int $limit = 25, int $offset = 0): array
+    public function findAllMediaPaginatedWithAlbumAndUser(array $criteria = [], array $orderBy = ['id' => 'ASC'], int $limit = 25,  int $offset = 0): array
     {
         $qb = $this->createQueryBuilder('m')
             ->leftJoin('m.user', 'u')
