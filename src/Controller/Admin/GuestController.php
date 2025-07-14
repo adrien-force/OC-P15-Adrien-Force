@@ -53,11 +53,29 @@ class GuestController extends AbstractController
 
     #[Route(path: '/admin/guest/manage', name: 'admin_guest_manage')]
     #[IsGranted(User::ADMIN_ROLE)]
-    public function manage(): Response
+    public function manage(Request $request): Response
     {
-        $guests = $this->userRepository->findAllNonGuestUsers();
+        $page = $request->query->getInt('page', 1);
+        $limit = $request->query->getInt('limit', 15);
+        $search = $request->query->get('search');
 
-        return $this->render('admin/guest/manage.html.twig', ['users' => $guests]);
+        $users = $this->userRepository->findAllNonGuestUsersPaginated(
+            ['isGuest' => false],
+            ['email' => 'ASC'],
+            $limit,
+            $limit * ($page - 1),
+            $search
+        );
+
+        $total = $this->userRepository->countNonGuestUsersWithCriteria(['isGuest' => false], $search);
+
+        return $this->render('admin/guest/manage.html.twig', [
+            'users' => $users,
+            'total' => $total,
+            'page' => $page,
+            'limit' => $limit,
+            'search' => $search,
+        ]);
     }
 
     #[Route(path: '/admin/guest/add-role/{id}', name: 'admin_guest_add_role')]
