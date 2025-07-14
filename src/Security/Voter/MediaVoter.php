@@ -49,7 +49,7 @@ class MediaVoter extends Voter
             self::VIEW => $this->canView(),
             self::EDIT => $this->canEdit($subject, $user, $vote ?: null, $token),
             self::DELETE => $this->canDelete($subject, $user, $vote ?: null, $token),
-            self::ADD => $this->canAdd($token, $vote ?: null),
+            self::ADD => $this->canAdd($user, $token, $vote ?: null),
             default => false,
         };
     }
@@ -81,9 +81,9 @@ class MediaVoter extends Voter
             || ($subject->getUser()?->getId() === $user->getId());
     }
 
-    private function canAdd(TokenInterface $token, ?Vote $vote): bool
+    private function canAdd(User $user, TokenInterface $token, ?Vote $vote): bool
     {
-        if (!$this->accessDecisionManager->decide($token, [User::GUEST_ROLE, User::ADMIN_ROLE])) {
+        if ($this->accessDecisionManager->decide($token, [User::ADMIN_ROLE]) || $user->isGuest()) {
             $vote?->addReason('Seul les invités peuvent ajouter des médias.');
 
             return false;

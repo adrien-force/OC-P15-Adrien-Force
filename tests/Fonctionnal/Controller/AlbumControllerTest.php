@@ -30,7 +30,7 @@ class AlbumControllerTest extends WebTestCase
         $this->userRepository = static::getContainer()->get(UserRepository::class);
         $this->albumRepository = static::getContainer()->get(AlbumRepository::class);
         $this->mediaRepository = static::getContainer()->get(MediaRepository::class);
-        $this->baseUser = $this->userRepository->findByRole(User::GUEST_ROLE)[0];
+        $this->baseUser = $this->userRepository->findAllGuestUsers()[0];
         $this->adminUser = $this->userRepository->findByRole(User::ADMIN_ROLE)[0];
 
     }

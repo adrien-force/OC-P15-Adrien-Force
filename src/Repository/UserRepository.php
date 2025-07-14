@@ -61,4 +61,31 @@ class UserRepository extends ServiceEntityRepository implements PasswordUpgrader
             ->getQuery()
             ->getResult();
     }
+
+    public function findAllGuestUsers(): array
+    {
+        return $this->createQueryBuilder('u')
+            ->where('u.isGuest = true')
+            ->getQuery()
+            ->getResult();
+    }
+
+    public function findAllNonGuestUsers(): array
+    {
+        return $this->createQueryBuilder('u')
+            ->where('u.isGuest = false')
+            ->getQuery()
+            ->getResult();
+    }
+
+    public function findAllGuestsWithEagerMedias(): array
+    {
+        return $this->createQueryBuilder('u')
+            ->leftJoin('u.medias', 'm')
+            ->addSelect('m')
+            ->where('u.isGuest = true')
+            ->getQuery()
+            ->getResult();
+    }
+
 }

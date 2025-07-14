@@ -20,7 +20,7 @@ class GuestFormTest extends WebTestCase
 
         $this->userRepository = static::getContainer()->get(UserRepository::class);
         $this->adminUser = $this->userRepository->findByRole(User::ADMIN_ROLE)[0];
-        $this->guestUser = $this->userRepository->findByRole(User::GUEST_ROLE)[0];
+        $this->guestUser = $this->userRepository->findAllGuestUsers()[0];
 
         $client->loginUser($this->adminUser);
     }

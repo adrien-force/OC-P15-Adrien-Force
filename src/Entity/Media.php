@@ -15,10 +15,10 @@ class Media
     #[ORM\Column]
     private ?int $id = null;
 
-    #[ORM\ManyToOne(targetEntity: User::class, fetch: 'EAGER', inversedBy: 'medias')]
+    #[ORM\ManyToOne(targetEntity: User::class, inversedBy: 'medias')]
     private ?User $user = null;
 
-    #[ORM\ManyToOne(targetEntity: Album::class, fetch: 'EAGER')]
+    #[ORM\ManyToOne(targetEntity: Album::class)]
     private ?Album $album = null;
 
     #[ORM\Column]

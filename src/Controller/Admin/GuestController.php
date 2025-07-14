@@ -27,7 +27,7 @@ class GuestController extends AbstractController
     #[IsGranted(User::ADMIN_ROLE)]
     public function index(): Response
     {
-        $guests = $this->userRepository->findByRole(User::GUEST_ROLE);
+        $guests = $this->userRepository->findAllGuestUsers();
 
         return $this->render('admin/guest/index.html.twig', ['guests' => $guests]);
     }
@@ -36,7 +36,7 @@ class GuestController extends AbstractController
     #[IsGranted(User::ADMIN_ROLE)]
     public function manage(): Response
     {
-        $guests = $this->userRepository->findWithoutRole(User::GUEST_ROLE);
+        $guests = $this->userRepository->findAllNonGuestUsers();
 
         return $this->render('admin/guest/manage.html.twig', ['users' => $guests]);
     }
@@ -45,8 +45,8 @@ class GuestController extends AbstractController
     #[IsGranted(User::ADMIN_ROLE)]
     public function addRole(User $user): RedirectResponse
     {
-        if (!in_array(User::GUEST_ROLE, $user->getRoles(), true)) {
-            $user->addRole(User::GUEST_ROLE);
+        if (!$user->isGuest()) {
+            $user->setIsGuest(true);
             $this->em->flush();
         }
 
@@ -56,7 +56,7 @@ class GuestController extends AbstractController
     #[Route(path: '/admin/guest/update/{id}', name: 'admin_guest_update')]
     public function update(Request $request, User $guest): RedirectResponse|Response
     {
-        if (!in_array(User::GUEST_ROLE, $guest->getRoles(), true)) {
+        if (!$guest->isGuest()) {
             return $this->redirectToRoute('admin_guest_manage');
         }
 
@@ -76,8 +76,8 @@ class GuestController extends AbstractController
     #[IsGranted(User::ADMIN_ROLE)]
     public function removeRole(User $guest): RedirectResponse
     {
-        if (in_array(User::GUEST_ROLE, $guest->getRoles(), true)) {
-            $guest->removeRole(User::GUEST_ROLE);
+        if ($guest->isGuest()) {
+            $guest->setIsGuest(false);
             $this->em->flush();
         }
 
@@ -87,7 +87,7 @@ class GuestController extends AbstractController
     #[Route(path: '/admin/guest/delete/{id}', name: 'admin_guest_delete')]
     public function delete(User $guest): RedirectResponse
     {
-        if (in_array(User::GUEST_ROLE, $guest->getRoles(), true)) {
+        if ($guest->isGuest()) {
             $medias = $this->mediaRepository->findBy(['user' => $guest]);
             foreach ($medias as $media) {
                 $media->setUser(null);

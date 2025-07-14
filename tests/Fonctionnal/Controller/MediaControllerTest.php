@@ -33,7 +33,7 @@ class MediaControllerTest extends WebTestCase
         $this->adminUser = $this->userRepository->findByRole(User::ADMIN_ROLE)[0];
         $this->baseUser = $this->userRepository->findByRole(User::USER_ROLE)[0];
 
-        $guestUsers = $this->userRepository->findByRole(User::GUEST_ROLE);
+        $guestUsers = $this->userRepository->findAllGuestUsers();
         $this->guestUser = !empty($guestUsers) ? $guestUsers[0] : $this->baseUser;
         $this->album = $this->albumRepository->findAll()[0];
     }

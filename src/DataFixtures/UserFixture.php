@@ -18,14 +18,13 @@ final class UserFixture extends Fixture
 
     public function load(ObjectManager $manager): void
     {
-        for ($users = [], $i = 0; $i < 40; ++$i) {
+        for ($users = [], $i = 0; $i < 400; ++$i) {
             /** @var User[] $users */
-            $role = 0 === $i % 2 ? User::GUEST_ROLE : User::USER_ROLE;
 
             $user = (new User())
                 ->setName($name = $this->faker->userName)
                 ->setEmail(sprintf('%s@mail.com', $name))
-                ->addRole($role)
+                ->setIsGuest(0 === $i % 2)
             ;
             $user->setPassword($this->hasher->hashPassword($user, 'password'));
             $users[] = $user;

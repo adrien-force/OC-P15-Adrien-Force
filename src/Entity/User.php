@@ -18,7 +18,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public const ADMIN_ROLE = 'ROLE_ADMIN';
     public const USER_ROLE = 'ROLE_USER';
     /** To be used later */
-    public const GUEST_ROLE = 'ROLE_GUEST';
 
     #[ORM\Id]
     #[GeneratedValue(strategy: 'SEQUENCE')]
@@ -46,7 +45,10 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     /** @var string[] */
     #[ORM\Column(type: 'json', nullable: false, options: ['jsonb' => true])]
-    private array $roles = [];
+    private array $roles = [self::USER_ROLE];
+
+    #[ORM\Column(type: 'boolean', options: ['default' => false])]
+    private bool $isGuest = false;
 
     public function __construct()
     {
@@ -139,5 +141,16 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function getPassword(): string
     {
         return $this->password;
+    }
+
+    public function setIsGuest(bool $isGuest): User
+    {
+        $this->isGuest = $isGuest;
+        return $this;
+    }
+
+    public function isGuest(): bool
+    {
+        return $this->isGuest;
     }
 }

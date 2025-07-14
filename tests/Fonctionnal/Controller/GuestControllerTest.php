@@ -22,7 +22,7 @@ class GuestControllerTest extends WebTestCase
         $this->adminUser = $this->userRepository->findByRole(User::ADMIN_ROLE)[0];
         $this->baseUser = $this->userRepository->findByRole(User::USER_ROLE)[0];
 
-        $guestUsers = $this->userRepository->findByRole(User::GUEST_ROLE);
+        $guestUsers = $this->userRepository->findAllGuestUsers();
         $this->guestUser = !empty($guestUsers) ? $guestUsers[0] : $this->baseUser;
     }
 
@@ -64,7 +64,7 @@ class GuestControllerTest extends WebTestCase
         $client = static::getClient();
         $client->loginUser($this->adminUser);
 
-        $nonGuestUsers = $this->userRepository->findWithoutRole(User::GUEST_ROLE);
+        $nonGuestUsers = $this->userRepository->findAllNonGuestUsers();
 
         if (empty($nonGuestUsers)) {
             $this->markTestSkipped('No non-guest users available for testing');
@@ -79,9 +79,9 @@ class GuestControllerTest extends WebTestCase
         $client->followRedirect();
 
         self::assertResponseIsSuccessful();
-        $this->assertSelectorTextContains('main div h1',  'Gérer les invités');
+        self::assertSelectorTextContains('main div h1', 'Gérer les invités');
 
-        $this->assertTrue(in_array(User::GUEST_ROLE, $nonGuestUser->getRoles(), true));
+        $this->assertTrue($nonGuestUser->isGuest(), 'User should now have guest role');
     }
 
     public function testUpdateGuestFunctionality(): void
@@ -90,7 +90,7 @@ class GuestControllerTest extends WebTestCase
         $client->loginUser($this->adminUser);
 
         // Find a user with guest role
-        $guestUsers = $this->userRepository->findByRole(User::GUEST_ROLE);
+        $guestUsers = $this->userRepository->findAllGuestUsers();
 
         if (empty($guestUsers)) {
             $this->markTestSkipped('No guest users available for testing');
@@ -122,7 +122,7 @@ class GuestControllerTest extends WebTestCase
 
         // Check if we're on the index page
         self::assertResponseIsSuccessful();
-        $this->assertSelectorTextContains('main div h1', 'Invités');
+        self::assertSelectorTextContains('main div h1', 'Invités');
 
         $guestUser = $this->getUserById($guestUser->getId());
 
@@ -158,7 +158,7 @@ class GuestControllerTest extends WebTestCase
         $client->loginUser($this->adminUser);
 
         // Find a user with guest role
-        $guestUsers = $this->userRepository->findByRole(User::GUEST_ROLE);
+        $guestUsers = $this->userRepository->findAllGuestUsers();
 
         if (empty($guestUsers)) {
             $this->markTestSkipped('No guest users available for testing');
@@ -182,7 +182,7 @@ class GuestControllerTest extends WebTestCase
         $guestUser = $this->getUserById($guestUser->getId());
 
         // Check if user no longer has guest role
-        $this->assertFalse(in_array(User::GUEST_ROLE, $guestUser->getRoles(), true));
+        $this->assertFalse($guestUser->isGuest());
     }
 
     public function testNonAdminCannotAccessGuestPages(): void
