@@ -36,7 +36,10 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     private string $email;
 
     #[ORM\Column(type: 'string')]
-    #[Assert\PasswordStrength(minScore: Assert\PasswordStrength::STRENGTH_WEAK)]
+    #[Assert\PasswordStrength(
+        minScore: Assert\PasswordStrength::STRENGTH_VERY_STRONG,
+        message: 'Votre est trop faible. Veuillez utilisez un mot de passe plus fort.'
+    )]
     private string $password;
 
     /** @var Collection<int, Media> */
