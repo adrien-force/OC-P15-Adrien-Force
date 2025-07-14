@@ -19,14 +19,74 @@
                 {% endfor %}
             </div>
             <div class="row">
-                {% for media in medias %}
-                    <div class="col-4 media mb-4">
-                        <img loading="lazy" class="w-100" src="{{ asset(media.path) }}" alt="{{ media.title }}">
-                        <p class="text-center mb-0 mt-2 media-title">{{ media.title }}</p>
+                {% if medias|length > 0 %}
+                    {% for media in medias %}
+                        <div class="col-4 media mb-4">
+                            <img loading="lazy" class="w-100" src="{{ asset(media.path) }}" alt="{{ media.title }}">
+                            <p class="text-center mb-0 mt-2 media-title">{{ media.title }}</p>
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="alert alert-info my-5 text-center">
+                        <div class="d-flex align-items-center justify-content-center">
+                            <i class="bi bi-info-circle-fill me-3 fs-3"></i>
+                            <div>
+                                <h4 class="alert-heading">Aucun résultat</h4>
+                                <p class="mb-0">
+                                    Aucun média n'a été trouvé dans cet album.
+                                </p>
+                            </div>
+                        </div>
                     </div>
-                {% endfor %}
+                {% endif %}
             </div>
+
+            {% set totalPages = max(1, (total / limit)|round(0, 'ceil')) %}
+
+            {% if totalPages > 1 %}
+                <nav aria-label="Page navigation" class="mt-5">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <ul class="pagination">
+                            {% if page > 1 %}
+                                <li class="page-item">
+                                    <a class="btn" href="{{ path('portfolio', {id: album ? album.id : null, page: page - 1, limit: limit}) }}">Précédent</a>
+                                </li>
+                            {% endif %}
+
+                            {% for i in range(max(1, page - 2), min(totalPages, page + 2)) %}
+                                <li class="page-item {% if i == page %}custom_active{% endif %}">
+                                    <a class="btn" href="{{ path('portfolio', {id: album ? album.id : null, page: i, limit: limit}) }}">{{ i }}</a>
+                                </li>
+                            {% endfor %}
+
+                            {% if page < totalPages %}
+                                <li class="page-item">
+                                    <a class="btn" href="{{ path('portfolio', {id: album ? album.id : null, page: page + 1, limit: limit}) }}">Suivant</a>
+                                </li>
+                            {% endif %}
+                        </ul>
+                        <div>
+                            <form class="d-flex align-items-center" method="get" action="{{ path('portfolio', {id: album ? album.id : null}) }}">
+                                <label for="limit" class="me-2 text-nowrap">Éléments par page:</label>
+                                <div class="d-inline-block position-relative">
+                                    <select class="form-select form-control border border-dark rounded-0"
+                                            style="background-color: transparent; font-family: 'DM Sans', sans-serif; font-size: 14px;"
+                                            id="limit"
+                                            name="limit"
+                                            onchange="this.form.submit()">
+                                        {% for option in [9, 15, 24, 36] %}
+                                            <option value="{{ option }}" {% if limit == option %}selected{% endif %}>{{ option }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                                {% if page > 1 %}
+                                    <input type="hidden" name="page" value="{{ page }}">
+                                {% endif %}
+                            </form>
+                        </div>
+                    </div>
+                </nav>
+            {% endif %}
         </div>
     </div>
 {% endblock %}
-
