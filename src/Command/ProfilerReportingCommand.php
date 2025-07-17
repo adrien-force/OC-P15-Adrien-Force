@@ -9,6 +9,13 @@ use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
 use Symfony\Component\HttpKernel\Profiler\Profiler;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
+use PhpOffice\PhpSpreadsheet\Style\NumberFormat;
+use PhpOffice\PhpSpreadsheet\Style\Fill;
+use PhpOffice\PhpSpreadsheet\Style\Color;
+use PhpOffice\PhpSpreadsheet\Style\Alignment;
+use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
 
 class ProfilerReportingCommand extends Command
 {
@@ -35,15 +42,13 @@ class ProfilerReportingCommand extends Command
             ->addOption('requests', 'r', InputArgument::OPTIONAL, 'Number of requests to execute with ab', 100)
             ->addOption('concurrency', 'c', InputArgument::OPTIONAL, 'Concurrency level for ab', 1)
             ->addOption('cookie', 'k', InputArgument::OPTIONAL, 'Cookie to send with ab requests (e.g. "PHPSESSID=eo8gqbtnorfl25o0f7390o9v37")', '')
-            ->addOption('base-url', 'u', InputArgument::OPTIONAL, 'Base URL for ab requests', 'http://127.0.0.1:8000')
-            ->addArgument('routes', InputArgument::IS_ARRAY | InputArgument::REQUIRED, 'Les routes à analyser (e.g. /admin/ ou !/api/)');
+            ->addOption('base-url', 'u', InputArgument::OPTIONAL, 'Base URL for ab requests', 'http://127.0.0.1:8000');
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $io = new SymfonyStyle($input, $output);
 
-        $routes = $input->getArgument('routes');
         $n = (int) $input->getOption('n');
         $s = (int) $input->getOption('s');
         $v = $input->getOption('verbose');
@@ -53,37 +58,59 @@ class ProfilerReportingCommand extends Command
             return Command::FAILURE;
         }
 
-        $benchmarkOptions = [
+        $benchmarkOptions = $this->getBenchmarkOptions($input);
+
+        $routes = ["/guests", "/portfolio", "/admin/media", "/admin/album", "/admin/guest", "/admin/guest/manage"];
+        $allRouteData = [];
+
+        foreach ($routes as $route) {
+            $routeData = $this->processRoute($route, $n, $s, $v, $benchmarkOptions, $io, $output);
+            if ($routeData) {
+                $allRouteData[$route] = $routeData;
+            }
+        }
+
+        if (count($allRouteData) > 0) {
+            $this->generateGlobalReport($allRouteData, $n, $s, $io);
+        }
+
+        return Command::SUCCESS;
+    }
+
+    private function processRoute(string $route, int $n, int $s, $v, array $benchmarkOptions, SymfonyStyle $io, OutputInterface $output): ?array
+    {
+        if ($benchmarkOptions['run']) {
+            $this->runBenchmark($route, $benchmarkOptions, $io, $output);
+        }
+
+        $csvPath = $this->generateCsvPath($route, $n, $s);
+        $tokens = $this->profiler->find('', $route, $n, '', '', '');
+
+        if (!$tokens) {
+            $io->warning('No tokens found for the given route pattern: ' . $route);
+            return null;
+        }
+
+        $rows = $this->collectProfilerData($tokens);
+        $headers = $this->getHeaders();
+
+        if ($v > 1) {
+            $this->displayTable($io, $n, $route, $headers, $rows);
+        }
+        $this->generateCsv($csvPath, $route, $headers, $rows, $io);
+
+        return $rows;
+    }
+
+    private function getBenchmarkOptions(InputInterface $input): array
+    {
+        return [
             'run' => $input->getOption('run-test'),
             'requests' => (int) $input->getOption('requests'),
             'concurrency' => (int) $input->getOption('concurrency'),
             'cookie' => $input->getOption('cookie'),
             'baseUrl' => $input->getOption('base-url'),
         ];
-
-        foreach ($routes as $route) {
-            if ($benchmarkOptions['run']) {
-                $this->runBenchmark($route, $benchmarkOptions, $io, $output);
-            }
-
-            $csvPath = $this->generateCsvPath($route, $n, $s);
-            $tokens = $this->profiler->find('', $route, $n, '', '', '');
-
-            if (!$tokens) {
-                $io->warning('No tokens found for the given route pattern: ' . $route);
-                continue;
-            }
-
-            $rows = $this->collectProfilerData($tokens);
-            $headers = $this->getHeaders();
-
-            if ($v > 1) {
-                $this->displayTable($io, $n, $route, $headers, $rows);
-            }
-            $this->generateCsv($csvPath, $route, $headers, $rows, $io);
-        }
-
-        return Command::SUCCESS;
     }
 
     private function runBenchmark(string $route, array $options, SymfonyStyle $io, OutputInterface $output): void
@@ -161,26 +188,37 @@ class ProfilerReportingCommand extends Command
 
         foreach ($tokens as $tokenData) {
             $token = $tokenData['token'] ?? null;
-            $dbTimeMs = $queryCount = $managedEntities = 'N/A';
+            $dbTimeMs = $renderTimeMs = $queryCount = $managedEntities = 'N/A';
 
             if ($token) {
                 $profile = $this->profiler->loadProfile($token);
-                if ($profile && $profile->hasCollector('db')) {
-                    $dbCollector = $profile->getCollector('db');
-                    $dbTimeMs = number_format($dbCollector->getTime() * 1000, 2) . ' ms';
-                    $queryCount = $dbCollector->getQueryCount();
-                    $managedEntities = $dbCollector->getManagedEntityCount();
+
+                if ($profile) {
+                    if ($profile->hasCollector('db')) {
+                        $dbCollector = $profile->getCollector('db');
+                        $dbTime = $dbCollector->getTime() * 1000;
+                        $dbTimeMs = number_format($dbTime, 2, '.', '');
+                        $queryCount = $dbCollector->getQueryCount();
+                        $managedEntities = $dbCollector->getManagedEntityCount();
+                    }
+
+                    if ($profile->hasCollector('time')) {
+                        $timeCollector = $profile->getCollector('time');
+                        $renderTime = $timeCollector->getDuration() * 1000;
+                        $renderTimeMs = number_format($renderTime, 2, '.', '');
+                    }
                 }
             }
 
             $rows[] = [
+                isset($tokenData['time']) ? date('Y-m-d H:i:s', $tokenData['time']) : '',
+                $dbTimeMs,
+                $renderTimeMs,
                 $token,
                 $tokenData['ip'] ?? '',
                 $tokenData['method'] ?? '',
                 $tokenData['url'] ?? '',
-                isset($tokenData['time']) ? date('Y-m-d H:i:s', $tokenData['time']) : '',
                 $queryCount,
-                $dbTimeMs,
                 $managedEntities,
             ];
         }
@@ -191,13 +229,14 @@ class ProfilerReportingCommand extends Command
     private function getHeaders(): array
     {
         return [
+            'Time',
+            'Query Time (ms)',
+            'Render Time (ms)',
             'Token',
             'IP',
             'Method',
             'URL',
-            'Time',
             'Queries',
-            'Query Time',
             'Managed Entities'
         ];
     }
@@ -211,8 +250,6 @@ class ProfilerReportingCommand extends Command
     private function generateCsv(string $csvPath, string $route, array $headers, array $rows, SymfonyStyle $io): void
     {
         $fp = fopen($csvPath, 'wb');
-
-        fputcsv($fp, ['Route', $route]);
         fputcsv($fp, $headers);
 
         foreach ($rows as $row) {
@@ -221,5 +258,154 @@ class ProfilerReportingCommand extends Command
 
         fclose($fp);
         $io->success("CSV généré: $csvPath");
+    }
+
+    private function generateGlobalReport(array $allRouteData, int $n, int $s, SymfonyStyle $io): void
+    {
+        $spreadsheet = new Spreadsheet();
+
+        $summarySheet = $spreadsheet->getActiveSheet();
+        $summarySheet->setTitle('Récapitulatif');
+
+        $this->generateSummarySheet($summarySheet, $allRouteData);
+
+        $sheetIndex = 1;
+        foreach ($allRouteData as $route => $rows) {
+            $routeName = $this->getSafeSheetName($route);
+            $sheet = $spreadsheet->createSheet($sheetIndex++);
+            $sheet->setTitle($routeName);
+
+            $headers = $this->getHeaders();
+            $sheet->fromArray($headers, null, 'A1');
+
+            $rowNumber = 2;
+            foreach ($rows as $row) {
+                $sheet->fromArray($row, null, 'A' . $rowNumber++);
+            }
+
+            $this->formatNumericColumns($sheet);
+            $this->applyStyles($sheet, $rowNumber, count($headers));
+        }
+
+        $reportPath = 'var/log/profiler_global_report_' . date('Ymd_His') . '.xlsx';
+        $writer = new Xlsx($spreadsheet);
+        $writer->save($reportPath);
+
+        $io->success("Rapport global généré: $reportPath");
+    }
+
+    private function generateSummarySheet($sheet, array $allRouteData): void
+    {
+        $headers = ['Route', 'Nombre de requêtes', 'Temps requête DB moyen (ms)', 'Écart type DB (ms)',
+                    'Temps rendu moyen (ms)', 'Écart type rendu (ms)', 'Requêtes SQL moyen', 'Entités gérées moyen'];
+        $sheet->fromArray($headers, null, 'A1');
+
+        $row = 2;
+        foreach ($allRouteData as $route => $rows) {
+            $queryTimes = [];
+            $renderTimes = [];
+            $queryCounts = [];
+            $entityCounts = [];
+
+            foreach ($rows as $data) {
+                $queryTime = $data[1] !== 'N/A' ? (float)$data[1] : null;
+                $renderTime = $data[2] !== 'N/A' ? (float)$data[2] : null;
+                $queryCount = $data[7] !== 'N/A' ? (int)$data[7] : null;
+                $entityCount = $data[8] !== 'N/A' ? (int)$data[8] : null;
+
+                if ($queryTime !== null) $queryTimes[] = $queryTime;
+                if ($renderTime !== null) $renderTimes[] = $renderTime;
+                if ($queryCount !== null) $queryCounts[] = $queryCount;
+                if ($entityCount !== null) $entityCounts[] = $entityCount;
+            }
+
+            $sheet->setCellValue('A' . $row, $route);
+            $sheet->setCellValue('B' . $row, count($rows));
+
+            $sheet->setCellValue('C' . $row, $this->calculateAverage($queryTimes));
+            $sheet->setCellValue('D' . $row, $this->calculateStandardDeviation($queryTimes));
+
+            $sheet->setCellValue('E' . $row, $this->calculateAverage($renderTimes));
+            $sheet->setCellValue('F' . $row, $this->calculateStandardDeviation($renderTimes));
+
+            $sheet->setCellValue('G' . $row, $this->calculateAverage($queryCounts));
+            $sheet->setCellValue('H' . $row, $this->calculateAverage($entityCounts));
+
+            $row++;
+        }
+
+        $this->applyStyles($sheet, $row, count($headers));
+
+        $sheet->getStyle('C2:F' . ($row - 1))->getNumberFormat()
+            ->setFormatCode(NumberFormat::FORMAT_NUMBER_COMMA_SEPARATED1);
+    }
+
+    private function calculateAverage(array $values): float
+    {
+        if (empty($values)) {
+            return 0;
+        }
+
+        return array_sum($values) / count($values);
+    }
+
+    private function calculateStandardDeviation(array $values): float
+    {
+        $count = count($values);
+        if ($count <= 1) {
+            return 0;
+        }
+
+        $avg = $this->calculateAverage($values);
+        $variance = 0;
+
+        foreach ($values as $value) {
+            $variance += pow($value - $avg, 2);
+        }
+
+        return sqrt($variance / $count);
+    }
+
+    private function getSafeSheetName(string $route): string
+    {
+        $safeName = preg_replace('/[^a-zA-Z0-9_\-]/', '_', trim($route, '/'));
+        if ($safeName === '') {
+            $safeName = 'root';
+        }
+
+        return substr($safeName, 0, 31);
+    }
+
+    private function formatNumericColumns($sheet): void
+    {
+        $lastRow = $sheet->getHighestRow();
+        $sheet->getStyle('B2:C' . $lastRow)->getNumberFormat()
+            ->setFormatCode(NumberFormat::FORMAT_NUMBER_COMMA_SEPARATED1);
+    }
+
+    private function applyStyles($sheet, int $rowCount, int $columnCount): void
+    {
+        foreach (range('A', Coordinate::stringFromColumnIndex($columnCount)) as $columnId) {
+            $sheet->getColumnDimension($columnId)->setAutoSize(true);
+        }
+
+        $headerStyle = [
+            'font' => ['bold' => true, 'color' => ['argb' => Color::COLOR_WHITE]],
+            'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['argb' => Color::COLOR_BLACK]],
+            'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER],
+        ];
+
+        $sheet->getStyle('A1:' . Coordinate::stringFromColumnIndex($columnCount) . '1')->applyFromArray($headerStyle);
+
+        $borderStyle = [
+            'borders' => [
+                'allBorders' => [
+                    'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN,
+                    'color' => ['argb' => Color::COLOR_BLACK],
+                ],
+            ],
+        ];
+
+        $sheet->getStyle('A1:' . Coordinate::stringFromColumnIndex($columnCount) . ($rowCount - 1))->applyFromArray($borderStyle);
     }
 }
