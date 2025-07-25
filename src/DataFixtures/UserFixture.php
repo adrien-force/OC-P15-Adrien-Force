@@ -20,13 +20,16 @@ final class UserFixture extends Fixture
     {
         for ($users = [], $i = 0; $i < 400; ++$i) {
             /** @var User[] $users */
+            $ranInt = $this->faker->randomNumber();
+            $lastnameRan = $this->faker->lastName();
 
             $user = (new User())
                 ->setName($name = $this->faker->userName)
-                ->setEmail(sprintf('%s@mail.com', $name))
+                ->setEmail(sprintf('%s%d%s@mail.com', $name, $ranInt, $lastnameRan))
                 ->setIsGuest(0 === $i % 2)
             ;
-            $user->setPassword($this->hasher->hashPassword($user, 'password'));
+            //Set password without hashing for base user to reduce CPU utilization on large fixture set
+            $user->setPassword('password');
             $users[] = $user;
         }
 

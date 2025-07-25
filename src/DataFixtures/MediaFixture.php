@@ -25,7 +25,7 @@ class MediaFixture extends Fixture implements DependentFixtureInterface
 
         for ($i = 0; $i < 10; ++$i) {
             $mediaFolder = dirname(__DIR__, 2) . '/public/uploads/';
-            $imageName = $i+1 . '.jpg';
+            $imageName = (($i) % 200 )+ 1 . '.jpg';
             $mediaPath = $mediaFolder . $imageName;
             $relativePath = 'uploads/' . $imageName;
             $medias[] = (new Media())

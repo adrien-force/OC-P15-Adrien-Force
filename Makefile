@@ -62,4 +62,4 @@ reinstall: composer
 
 fixture:
 	rm -rf /public/uploads/
-	symfony console doctrine:fixtures:load --no-interaction
+	php -d memory_limit=4G bin/console doctrine:fixtures:load --no-interaction
