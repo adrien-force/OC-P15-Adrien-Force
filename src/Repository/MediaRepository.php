@@ -77,6 +77,54 @@ class MediaRepository extends ServiceEntityRepository
             ->getSingleScalarResult();
     }
 
+    /**
+     * Finds media by album with pagination
+     *
+     * @param \App\Entity\Album|null $album The album to filter by (optional)
+     * @param int $limit Max results
+     * @param int $offset Result offset
+     * @return Media[] Returns an array of Media objects
+     */
+    public function findByAlbumPaginated(?\App\Entity\Album $album = null, int $limit = 15, int $offset = 0): array
+    {
+        $qb = $this->createQueryBuilder('m')
+            ->leftJoin('m.album', 'a')
+            ->addSelect('a');
+
+        if ($album !== null) {
+            $qb->andWhere('m.album = :album')
+               ->setParameter('album', $album);
+        }
+
+        return $qb
+            ->orderBy('m.id', 'DESC') // Newest first
+            ->setMaxResults($limit)
+            ->setFirstResult($offset)
+            ->getQuery()
+            ->getResult();
+    }
+
+    /**
+     * Count total medias by album
+     *
+     * @param \App\Entity\Album|null $album The album to filter by (optional)
+     * @return int Total count
+     */
+    public function countByAlbum(?\App\Entity\Album $album = null): int
+    {
+        $qb = $this->createQueryBuilder('m')
+            ->select('COUNT(m.id)');
+
+        if ($album !== null) {
+            $qb->andWhere('m.album = :album')
+               ->setParameter('album', $album);
+        }
+
+        return (int) $qb
+            ->getQuery()
+            ->getSingleScalarResult();
+    }
+
     //    /**
     //     * @return Media[] Returns an array of Media objects
     //     */

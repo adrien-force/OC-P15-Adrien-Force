@@ -8,6 +8,7 @@ use App\Entity\User;
 use App\Repository\UserRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 
@@ -26,12 +27,28 @@ class HomeController extends AbstractController
     }
 
     #[Route(path: '/guests', name: 'guests')]
-    public function guests(): Response
+    public function guests(Request $request): Response
     {
-        $guests = $this->userRepository->findAllGuestsWithEagerMedias();
+        $page = $request->query->getInt('page', 1);
+        $limit = $request->query->getInt('limit', 15);
+        $search = $request->query->get('search');
+
+        $guests = $this->userRepository->findAllGuestUsersPaginated(
+            ['isGuest' => true],
+            ['name' => 'ASC'],
+            $limit,
+            $limit * ($page - 1),
+            $search
+        );
+
+        $total = $this->userRepository->countWithCriteria(['isGuest' => true], $search);
 
         return $this->render('front/guests.html.twig', [
             'guests' => $guests,
+            'total' => $total,
+            'page' => $page,
+            'limit' => $limit,
+            'search' => $search,
         ]);
     }
 
@@ -44,18 +61,29 @@ class HomeController extends AbstractController
     }
 
     #[Route(path: '/portfolio/{id?}', name: 'portfolio')]
-    public function portfolio(?Album $album): Response
+    public function portfolio(?Album $album, Request $request): Response
     {
-        $albums = $this->em->getRepository(Album::class)->findAll();
+        $page = $request->query->getInt('page', 1);
+        $limit = $request->query->getInt('limit', 15);
 
-        $medias = $album instanceof Album
-            ? $this->em->getRepository(Media::class)->findByAlbum($album)
-        : $this->em->getRepository(Media::class)->findAll();
+        $albums = $this->em->getRepository(Album::class)->findAll();
+        $mediaRepository = $this->em->getRepository(Media::class);
+
+        $medias = $mediaRepository->findByAlbumPaginated(
+            $album,
+            $limit,
+            $limit * ($page - 1)
+        );
+
+        $total = $mediaRepository->countByAlbum($album);
 
         return $this->render('front/portfolio.html.twig', [
             'albums' => $albums,
             'album' => $album,
             'medias' => $medias,
+            'total' => $total,
+            'page' => $page,
+            'limit' => $limit,
         ]);
     }
 
