@@ -14,11 +14,11 @@ class RegistrationControllerTest extends WebTestCase
         $form = $crawler->selectButton('S\'inscrire')->form([
             'registration[name]' => 'testuser',
             'registration[email]' => 'testemailuser@test.com',
-            'registration[password][first]' => 'TestPassword123!',
-            'registration[password][second]' => 'TestPassword123!'
+            'registration[password][first]' => 'zklsjdqlzkjdlkqzjdkqzndjkqzhjdbqzhjd8378373££**¨¨',
+            'registration[password][second]' => 'zklsjdqlzkjdlkqzjdkqzndjkqzhjdbqzhjd8378373££**¨¨'
         ]);
         $client->submit($form);
-        self::assertResponseRedirects('/admin/media');
+        self::assertResponseRedirects('/login');
         $client->followRedirect();
     }
 }
