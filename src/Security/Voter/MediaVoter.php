@@ -86,9 +86,9 @@ class MediaVoter extends Voter
         if ($this->accessDecisionManager->decide($token, [User::ADMIN_ROLE]) || $user->isGuest()) {
             $vote?->addReason('Seul les invités peuvent ajouter des médias.');
 
-            return false;
+            return true;
         }
 
-        return true;
+        return false;
     }
 }
