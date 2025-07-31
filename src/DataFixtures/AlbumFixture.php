@@ -10,7 +10,6 @@ use Faker\Generator;
 
 class AlbumFixture extends Fixture implements DependentFixtureInterface
 {
-
     public function __construct(
         private readonly Generator $faker,
     ) {

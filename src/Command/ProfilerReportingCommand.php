@@ -7,8 +7,8 @@ use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
-use Symfony\Component\HttpKernel\Profiler\Profiler;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
+use Symfony\Component\HttpKernel\Profiler\Profiler;
 
 class ProfilerReportingCommand extends Command
 {
@@ -19,7 +19,7 @@ class ProfilerReportingCommand extends Command
 
     public function __construct(
         #[Autowire(service: 'profiler')]
-        Profiler $profiler
+        Profiler $profiler,
     ) {
         parent::__construct();
         $this->profiler = $profiler;
@@ -50,6 +50,7 @@ class ProfilerReportingCommand extends Command
 
         if ($n < 1) {
             $io->error('Number of tokens must be at least 1.');
+
             return Command::FAILURE;
         }
 
@@ -70,7 +71,7 @@ class ProfilerReportingCommand extends Command
             $tokens = $this->profiler->find('', $route, $n, '', '', '');
 
             if (!$tokens) {
-                $io->warning('No tokens found for the given route pattern: ' . $route);
+                $io->warning('No tokens found for the given route pattern: '.$route);
                 continue;
             }
 
@@ -88,23 +89,23 @@ class ProfilerReportingCommand extends Command
 
     private function runBenchmark(string $route, array $options, SymfonyStyle $io, OutputInterface $output): void
     {
-        $fullUrl = rtrim($options['baseUrl'], '/') . '/' . ltrim($route, '/');
+        $fullUrl = rtrim($options['baseUrl'], '/').'/'.ltrim($route, '/');
         $abCommand = $this->buildAbCommand($fullUrl, $options);
 
         $io->section(sprintf('Executing benchmark on %s', $fullUrl));
-        $io->text('Running: ' . $abCommand);
+        $io->text('Running: '.$abCommand);
 
         $process = proc_open($abCommand, [
             0 => ['pipe', 'r'],
             1 => ['pipe', 'w'],
-            2 => ['pipe', 'w']
+            2 => ['pipe', 'w'],
         ], $pipes);
 
         if (is_resource($process)) {
             $this->handleProcessOutput($pipes, $output);
             $exitCode = proc_close($process);
 
-            if ($exitCode !== 0) {
+            if (0 !== $exitCode) {
                 $io->warning(sprintf('Apache Benchmark exited with code %d', $exitCode));
             } else {
                 $io->success('Benchmark completed successfully');
@@ -148,7 +149,7 @@ class ProfilerReportingCommand extends Command
     private function generateCsvPath(string $route, int $n, int $s): string
     {
         $safeRoute = preg_replace('/[^a-zA-Z0-9_\-]/', '_', trim($route, '/'));
-        if ($safeRoute === '') {
+        if ('' === $safeRoute) {
             $safeRoute = 'root';
         }
 
@@ -167,7 +168,7 @@ class ProfilerReportingCommand extends Command
                 $profile = $this->profiler->loadProfile($token);
                 if ($profile && $profile->hasCollector('db')) {
                     $dbCollector = $profile->getCollector('db');
-                    $dbTimeMs = number_format($dbCollector->getTime() * 1000, 2) . ' ms';
+                    $dbTimeMs = number_format($dbCollector->getTime() * 1000, 2).' ms';
                     $queryCount = $dbCollector->getQueryCount();
                     $managedEntities = $dbCollector->getManagedEntityCount();
                 }
@@ -198,7 +199,7 @@ class ProfilerReportingCommand extends Command
             'Time',
             'Queries',
             'Query Time',
-            'Managed Entities'
+            'Managed Entities',
         ];
     }
 

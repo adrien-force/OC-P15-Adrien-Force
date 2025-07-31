@@ -18,7 +18,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public const ADMIN_ROLE = 'ROLE_ADMIN';
     public const USER_ROLE = 'ROLE_USER';
     /** To be used later */
-
     #[ORM\Id]
     #[GeneratedValue(strategy: 'SEQUENCE')]
     #[ORM\Column]
@@ -149,6 +148,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function setIsGuest(bool $isGuest): User
     {
         $this->isGuest = $isGuest;
+
         return $this;
     }
 

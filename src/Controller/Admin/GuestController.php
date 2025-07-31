@@ -48,7 +48,7 @@ class GuestController extends AbstractController
             'page' => $page,
             'limit' => $limit,
             'search' => $search,
-            ]);
+        ]);
     }
 
     #[Route(path: '/admin/guest/manage', name: 'admin_guest_manage')]

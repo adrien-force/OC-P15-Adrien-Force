@@ -89,13 +89,14 @@ class UserRepository extends ServiceEntityRepository implements PasswordUpgrader
     }
 
     /**
-     * Finds user with pagination and search capabilities
+     * Finds user with pagination and search capabilities.
      *
      * @param array<string, mixed> $criteria Filtering criteria
-     * @param array{id: string} $orderBy Order options
-     * @param int $limit Max results
-     * @param int $offset Result offset
-     * @param string|null $search Search term for name or email
+     * @param array{id: string}    $orderBy  Order options
+     * @param int                  $limit    Max results
+     * @param int                  $offset   Result offset
+     * @param string|null          $search   Search term for name or email
+     *
      * @return User[] Returns an array of User objects
      */
     public function findAllGuestUsersPaginated(array $criteria = [], array $orderBy = ['id' => 'ASC'], int $limit = 25, int $offset = 0, ?string $search = null): array
@@ -106,12 +107,12 @@ class UserRepository extends ServiceEntityRepository implements PasswordUpgrader
         // Add search capability
         if ($search) {
             $qb->andWhere('(u.name LIKE :search OR u.email LIKE :search)')
-               ->setParameter('search', '%' . $search . '%');
+               ->setParameter('search', '%'.$search.'%');
         }
 
         // Add criteria if provided
         foreach ($criteria as $field => $value) {
-            if ($field !== 'isGuest') { // isGuest already handled in base where clause
+            if ('isGuest' !== $field) { // isGuest already handled in base where clause
                 $qb->andWhere("u.$field = :$field")
                    ->setParameter($field, $value);
             }
@@ -130,10 +131,11 @@ class UserRepository extends ServiceEntityRepository implements PasswordUpgrader
     }
 
     /**
-     * Count total User matching criteria and search term
+     * Count total User matching criteria and search term.
      *
      * @param array<string, mixed> $criteria Filtering criteria
-     * @param string|null $search Search term for name or email
+     * @param string|null          $search   Search term for name or email
+     *
      * @return int Total count
      */
     public function countWithCriteria(array $criteria = [], ?string $search = null): int
@@ -145,12 +147,12 @@ class UserRepository extends ServiceEntityRepository implements PasswordUpgrader
         // Add search capability
         if ($search) {
             $qb->andWhere('(u.name LIKE :search OR u.email LIKE :search)')
-               ->setParameter('search', '%' . $search . '%');
+               ->setParameter('search', '%'.$search.'%');
         }
 
         // Add criteria if provided
         foreach ($criteria as $field => $value) {
-            if ($field !== 'isGuest') { // isGuest already handled in base where clause
+            if ('isGuest' !== $field) { // isGuest already handled in base where clause
                 $qb->andWhere("u.$field = :$field")
                    ->setParameter($field, $value);
             }
@@ -162,13 +164,14 @@ class UserRepository extends ServiceEntityRepository implements PasswordUpgrader
     }
 
     /**
-     * Finds non-guest users with pagination and search capabilities
+     * Finds non-guest users with pagination and search capabilities.
      *
      * @param array<string, mixed> $criteria Filtering criteria
-     * @param array{id: string} $orderBy Order options
-     * @param int $limit Max results
-     * @param int $offset Result offset
-     * @param string|null $search Search term for name or email
+     * @param array{id: string}    $orderBy  Order options
+     * @param int                  $limit    Max results
+     * @param int                  $offset   Result offset
+     * @param string|null          $search   Search term for name or email
+     *
      * @return User[] Returns an array of User objects
      */
     public function findAllNonGuestUsersPaginated(array $criteria = [], array $orderBy = ['id' => 'ASC'], int $limit = 25, int $offset = 0, ?string $search = null): array
@@ -179,12 +182,12 @@ class UserRepository extends ServiceEntityRepository implements PasswordUpgrader
         // Add search capability
         if ($search) {
             $qb->andWhere('(u.name LIKE :search OR u.email LIKE :search)')
-               ->setParameter('search', '%' . $search . '%');
+               ->setParameter('search', '%'.$search.'%');
         }
 
         // Add criteria if provided
         foreach ($criteria as $field => $value) {
-            if ($field !== 'isGuest') { // isGuest already handled in base where clause
+            if ('isGuest' !== $field) { // isGuest already handled in base where clause
                 $qb->andWhere("u.$field = :$field")
                    ->setParameter($field, $value);
             }
@@ -203,10 +206,11 @@ class UserRepository extends ServiceEntityRepository implements PasswordUpgrader
     }
 
     /**
-     * Count total non-guest users matching criteria and search term
+     * Count total non-guest users matching criteria and search term.
      *
      * @param array<string, mixed> $criteria Filtering criteria
-     * @param string|null $search Search term for name or email
+     * @param string|null          $search   Search term for name or email
+     *
      * @return int Total count
      */
     public function countNonGuestUsersWithCriteria(array $criteria = [], ?string $search = null): int
@@ -218,12 +222,12 @@ class UserRepository extends ServiceEntityRepository implements PasswordUpgrader
         // Add search capability
         if ($search) {
             $qb->andWhere('(u.name LIKE :search OR u.email LIKE :search)')
-               ->setParameter('search', '%' . $search . '%');
+               ->setParameter('search', '%'.$search.'%');
         }
 
         // Add criteria if provided
         foreach ($criteria as $field => $value) {
-            if ($field !== 'isGuest') { // isGuest already handled in base where clause
+            if ('isGuest' !== $field) { // isGuest already handled in base where clause
                 $qb->andWhere("u.$field = :$field")
                    ->setParameter($field, $value);
             }

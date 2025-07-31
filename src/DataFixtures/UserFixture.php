@@ -20,7 +20,6 @@ final class UserFixture extends Fixture
     {
         for ($users = [], $i = 0; $i < 400; ++$i) {
             /** @var User[] $users */
-
             $user = (new User())
                 ->setName($name = $this->faker->userName)
                 ->setEmail(sprintf('%s@mail.com', $name))

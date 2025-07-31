@@ -24,10 +24,10 @@ class MediaFixture extends Fixture implements DependentFixtureInterface
         $medias = [];
 
         for ($i = 0; $i < 10; ++$i) {
-            $mediaFolder = dirname(__DIR__, 2) . '/public/uploads/';
-            $imageName = $i+1 . '.jpg';
-            $mediaPath = $mediaFolder . $imageName;
-            $relativePath = 'uploads/' . $imageName;
+            $mediaFolder = dirname(__DIR__, 2).'/public/uploads/';
+            $imageName = $i + 1 .'.jpg';
+            $mediaPath = $mediaFolder.$imageName;
+            $relativePath = 'uploads/'.$imageName;
             $medias[] = (new Media())
                 ->setTitle($this->faker->sentence())
                 ->setPath($relativePath)
