@@ -65,8 +65,10 @@ class AlbumController extends AbstractController
     {
         foreach ($this->mediaRepository->findBy(['album' => $album]) as $media) {
             $media->setAlbum(null);
+            $this->em->persist($media);
         }
 
+        $this->em->flush();
         $this->em->remove($album);
         $this->em->flush();
 

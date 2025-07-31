@@ -16,6 +16,7 @@ class Media
     private ?int $id = null;
 
     #[ORM\ManyToOne(targetEntity: User::class, inversedBy: 'medias')]
+    #[ORM\JoinColumn(name: "album_id", referencedColumnName: "id", nullable: true, onDelete: "SET NULL")]
     private ?User $user = null;
 
     #[ORM\ManyToOne(targetEntity: Album::class)]

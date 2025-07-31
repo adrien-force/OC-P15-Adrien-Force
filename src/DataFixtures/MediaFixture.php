@@ -23,7 +23,7 @@ class MediaFixture extends Fixture implements DependentFixtureInterface
         $albums = $this->albumRepository->findAll();
         $medias = [];
 
-        for ($i = 0; $i < 10; ++$i) {
+        for ($i = 0, $iMax = count($albums); $i < $iMax; ++$i) {
             $mediaFolder = dirname(__DIR__, 2).'/public/uploads/';
             $imageName = $i + 1 .'.jpg';
             $mediaPath = $mediaFolder.$imageName;
@@ -35,7 +35,7 @@ class MediaFixture extends Fixture implements DependentFixtureInterface
                     path: $mediaPath,
                     originalName: $imageName,
                 ))
-                ->setAlbum($albums[$this->faker->numberBetween(0, count($albums) - 1)])
+                ->setAlbum($albums[$i])
             ;
         }
 

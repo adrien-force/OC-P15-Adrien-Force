@@ -22,7 +22,7 @@ class AlbumFixture extends Fixture implements DependentFixtureInterface
 
     public function load(ObjectManager $manager): void
     {
-        for ($i = 0; $i < 5; ++$i) {
+        for ($i = 0; $i < 50; ++$i) {
             $album = (new Album())
                 ->setName($this->faker->word())
             ;

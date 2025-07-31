@@ -52,7 +52,7 @@ class AlbumControllerTest extends WebTestCase
     {
         $client = $this->client;
 
-        $client->loginUser($this->baseUser);
+        $client->loginUser($this->adminUser);
         $client->request('GET', '/admin/album/add');
 
         self::assertResponseIsSuccessful();
@@ -64,7 +64,9 @@ class AlbumControllerTest extends WebTestCase
         $client = $this->client;
 
         $client->loginUser($this->baseUser);
-        $client->request('GET', '/admin/album/update/1');
+
+        $album = $this->albumRepository->findAll()[0];
+        $client->request('GET', sprintf("/admin/album/update/%s", $album->getId()));
 
         self::assertResponseIsSuccessful();
         self::assertSelectorTextContains('form button', 'Modifier');
@@ -74,8 +76,10 @@ class AlbumControllerTest extends WebTestCase
     {
         $client = $this->client;
 
+        $album = $this->albumRepository->findAll()[0];
+
         $client->loginUser($this->baseUser);
-        $client->request('GET', '/admin/album/delete/1');
+        $client->request('GET', sprintf("/admin/album/delete/%s", $album->getId()));
 
         self::assertResponseRedirects('/admin/album');
         self::assertTrue($client->getResponse()->isRedirect());
@@ -87,15 +91,17 @@ class AlbumControllerTest extends WebTestCase
         $client->loginUser($this->adminUser);
 
         $album = $this->albumRepository->findAll()[0];
-        $media = $this->mediaRepository->findAll()[0];
-        $media->setAlbum($album);
+        $media = $this->mediaRepository->findOneBy(['album' => $album]);
+
+        $albumId = $album->getId();
 
 
-        $client->request('GET', '/admin/album/delete/1');
+        $client->request('GET', sprintf("/admin/album/delete/%s", $album->getId()));
         self::assertResponseRedirects('/admin/album');
         $client->followRedirect();
 
-        self::assertNull($this->albumRepository->find($media->getId()));
+
+        self::assertNull($this->albumRepository->find($albumId));
         self::assertNotNull($this->mediaRepository->find($media->getId()));
     }
 
@@ -123,7 +129,9 @@ class AlbumControllerTest extends WebTestCase
         $client = $this->client;
         $client->loginUser($this->adminUser);
 
-        $crawler = $client->request('GET', '/admin/album/update/1');
+        $album = $this->albumRepository->findAll()[0];
+
+        $crawler = $client->request('GET', sprintf("/admin/album/update/%s", $album->getId()));
         $this->assertCount(1, $crawler->filter('form[name="album"]'));
         $form = $crawler->selectButton('Modifier')->form();
         $form['album[name]'] = 'Updated Album Name';
