@@ -35,7 +35,7 @@ class HomeControllerTest extends WebTestCase
     public function testGuestPage(): void
     {
         $client = static::getClient();
-        $guest = $this->userRepository->findByRole('ROLE_GUEST')[0] ?? null;
+        $guest = $this->userRepository->findAllGuestUsers()[0] ?? null;
         if ($guest) {
             $client->request('GET', '/guest/' . $guest->getId());
             self::assertResponseIsSuccessful();
