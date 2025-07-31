@@ -25,7 +25,7 @@ final class UserFixture extends Fixture
                 ->setEmail(sprintf('%s@mail.com', $name))
                 ->setIsGuest(0 === $i % 2)
             ;
-            $user->setPassword($this->hasher->hashPassword($user, 'password'));
+            $user->setPassword('password');
             $users[] = $user;
         }
 
