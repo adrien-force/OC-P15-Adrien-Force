@@ -36,7 +36,7 @@ class RegistrationController extends AbstractController
             $this->entityManager->persist($user);
             $this->entityManager->flush();
 
-            return $this->redirectToRoute('admin_media_index');
+            return $this->redirectToRoute('admin_login');
         }
 
         return $this->render(

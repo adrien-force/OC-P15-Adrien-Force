@@ -32,20 +32,20 @@ class SecurityControllerTest extends WebTestCase
         $crawler = $client->request('GET', '/admin/register');
 
         $form = $crawler->selectButton('S\'inscrire')->form([
-            'registration[name]' => 'testuser',
+            'registration[name]' => 'testuser98989',
             'registration[email]' => 'testemailuser@test.com',
-            'registration[password][first]' => 'TestPassword123!',
-            'registration[password][second]' => 'TestPassword123!'
+            'registration[password][first]' => 'zklsjdqlzkjdlkqzjdkqzndjkqzhjdbqzhjd8378373££**¨¨',
+            'registration[password][second]' => 'zklsjdqlzkjdlkqzjdkqzndjkqzhjdbqzhjd8378373££**¨¨'
         ]);
         $client->submit($form);
-        self::assertResponseRedirects('/admin/media');
+        self::assertResponseRedirects('/login');
         $client->followRedirect();
 
         $crawler = $client->request('GET', '/login');
 
         $form = $crawler->selectButton('Connexion')->form([
             '_username' => 'testemailuser@test.com',
-            '_password' => 'TestPassword123!'
+            '_password' => 'zklsjdqlzkjdlkqzjdkqzndjkqzhjdbqzhjd8378373££**¨¨'
         ]);
         $client->submit($form);
         self::assertResponseRedirects();
