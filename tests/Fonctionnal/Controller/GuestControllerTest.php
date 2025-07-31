@@ -137,13 +137,13 @@ class GuestControllerTest extends WebTestCase
         $client = static::getClient();
         $client->loginUser($this->adminUser);
 
-        $guestUsers = $this->userRepository->findByRole(User::USER_ROLE);
+        $nonGuestUsers = $this->userRepository->findAllNonGuestUsers();
 
-        if (empty($guestUsers)) {
-            $this->markTestSkipped('No guest users available for testing');
+        if (empty($nonGuestUsers)) {
+            $this->markTestSkipped('No base users available for testing');
         }
 
-        $guestUser = $guestUsers[0];
+        $guestUser = $nonGuestUsers[0];
 
         $crawler = $client->request('GET', '/admin/guest/update/' . $guestUser->getId());
 
