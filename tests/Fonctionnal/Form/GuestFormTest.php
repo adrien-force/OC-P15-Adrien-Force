@@ -49,9 +49,8 @@ class GuestFormTest extends WebTestCase
         $client->submit($form);
 
         self::assertResponseRedirects('/admin/guest');
-        $crawler = $client->followRedirect();
-
-        $this->assertSelectorTextContains('#guest-row-' . $this->guestUser->getId() . ' td:first-child', $newName);
+        $updatedUser =$this->userRepository->findBy(['id' => $this->guestUser->getId()])[0];
+        self::assertSame($newName, $updatedUser->getName());
     }
 
     public function testSubmittingInvalidData(): void
