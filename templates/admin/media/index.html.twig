@@ -43,37 +43,52 @@
             {% endfor %}
         </tbody>
     </table>
-    {% set totalPages = (total / 50)|round(0, 'ceil') %}
+    {% set totalPages = (total / limit)|round(0, 'ceil') %}
     </div>
 
     {% include 'components/image_modal.html.twig' %}
 
     <nav aria-label="Page navigation" class="position-sticky bottom-0 mt-auto">
-        <ul class="pagination">
-            {% if page > 1 %}
-                <li class="page-item">
-                    <a class="page-link" href="{{ path('admin_media_index', {page: 1}) }}">Première page</a>
-                </li>
-                <li class="page-item">
-                    <a class="page-link" href="{{ path('admin_media_index', {page: page - 1}) }}">Précédent</a>
-                </li>
-            {% endif %}
+        <div class="d-flex justify-content-between align-items-center">
+            <ul class="pagination">
+                {% if page > 1 %}
+                    <li class="page-item">
+                        <a class="page-link" href="{{ path('admin_media_index', {page: 1, limit: limit}) }}">Première page</a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link" href="{{ path('admin_media_index', {page: page - 1, limit: limit}) }}">Précédent</a>
+                    </li>
+                {% endif %}
 
-            {% for i in range(max(1, page - 3), min(totalPages, page + 3)) %}
-                <li class="page-item {% if i == page %}active{% endif %}">
-                    <a class="page-link" href="{{ path('admin_media_index', {page: i}) }}">{{ i }}</a>
-                </li>
-            {% endfor %}
+                {% for i in range(max(1, page - 3), min(totalPages, page + 3)) %}
+                    <li class="page-item {% if i == page %}active{% endif %}">
+                        <a class="page-link" href="{{ path('admin_media_index', {page: i, limit: limit}) }}">{{ i }}</a>
+                    </li>
+                {% endfor %}
 
-            {% if page < totalPages %}
-                <li class="page-item">
-                    <a class="page-link" href="{{ path('admin_media_index', {page: page + 1}) }}">Suivant</a>
-                </li>
-                <li class="page-item">
-                    <a class="page-link" href="{{ path('admin_media_index', {page: totalPages}) }}">Dernière page</a>
-                </li>
-            {% endif %}
-        </ul>
+                {% if page < totalPages %}
+                    <li class="page-item">
+                        <a class="page-link" href="{{ path('admin_media_index', {page: page + 1, limit: limit}) }}">Suivant</a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link" href="{{ path('admin_media_index', {page: totalPages, limit: limit}) }}">Dernière page</a>
+                    </li>
+                {% endif %}
+            </ul>
+            <div>
+                <form class="d-flex align-items-center" method="get" action="{{ path('admin_media_index') }}">
+                    <label for="limit" class="me-2 text-nowrap">Éléments par page:</label>
+                    <select class="form-select form-select-sm" id="limit" name="limit" onchange="this.form.submit()">
+                        {% for option in [5, 10, 15, 25, 50, 100] %}
+                            <option value="{{ option }}" {% if limit == option %}selected{% endif %}>{{ option }}</option>
+                        {% endfor %}
+                    </select>
+                    {% if page > 1 %}
+                        <input type="hidden" name="page" value="{{ page }}">
+                    {% endif %}
+                </form>
+            </div>
+        </div>
     </nav>
     </div>
 {% endblock %}

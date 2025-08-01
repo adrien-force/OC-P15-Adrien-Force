@@ -24,4 +24,48 @@
         {% endfor %}
         </tbody>
     </table>
+    {% set totalPages = (total / limit)|round(0, 'ceil') %}
+
+    <nav aria-label="Page navigation" class="position-sticky bottom-0 mt-auto">
+        <div class="d-flex justify-content-between align-items-center">
+            <ul class="pagination">
+                {% if page > 1 %}
+                    <li class="page-item">
+                        <a class="page-link" href="{{ path('admin_album_index', {page: 1, limit: limit}) }}">Première page</a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link" href="{{ path('admin_album_index', {page: page - 1, limit: limit}) }}">Précédent</a>
+                    </li>
+                {% endif %}
+
+                {% for i in range(max(1, page - 3), min(totalPages, page + 3)) %}
+                    <li class="page-item {% if i == page %}active{% endif %}">
+                        <a class="page-link" href="{{ path('admin_album_index', {page: i, limit: limit}) }}">{{ i }}</a>
+                    </li>
+                {% endfor %}
+
+                {% if page < totalPages %}
+                    <li class="page-item">
+                        <a class="page-link" href="{{ path('admin_album_index', {page: page + 1, limit: limit}) }}">Suivant</a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link" href="{{ path('admin_album_index', {page: totalPages, limit: limit}) }}">Dernière page</a>
+                    </li>
+                {% endif %}
+            </ul>
+            <div>
+                <form class="d-flex align-items-center" method="get" action="{{ path('admin_album_index') }}">
+                    <label for="limit" class="me-2 text-nowrap">Éléments par page:</label>
+                    <select class="form-select form-select-sm" id="limit" name="limit" onchange="this.form.submit()">
+                        {% for option in [5, 10, 15, 25, 50, 100] %}
+                            <option value="{{ option }}" {% if limit == option %}selected{% endif %}>{{ option }}</option>
+                        {% endfor %}
+                    </select>
+                    {% if page > 1 %}
+                        <input type="hidden" name="page" value="{{ page }}">
+                    {% endif %}
+                </form>
+            </div>
+        </div>
+    </nav>
 {% endblock %}

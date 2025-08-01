@@ -51,7 +51,9 @@ class AlbumTypeTest extends WebTestCase
         self::assertResponseRedirects('/admin/album');
         $client->followRedirect();
 
-        self::assertSelectorTextContains('#album-row-' . $this->album->getId() . ' td:first-child', $newName);
+        $updatedAlbum = $this->albumRepository->findBy(['id' => $this->album->getId()])[0];
+        self::assertSame($newName, $updatedAlbum->getName());
+
     }
 
     public function testSubmittingInvalidData(): void

@@ -25,6 +25,7 @@ class MediaController extends AbstractController
     public function index(Request $request): Response
     {
         $page = $request->query->getInt('page', 1);
+        $limit = $request->query->getInt('limit', 25);
 
         $criteria = [];
 
@@ -35,8 +36,8 @@ class MediaController extends AbstractController
         $medias = $this->mediaRepository->findAllMediaPaginatedWithAlbumAndUser(
             $criteria,
             ['id' => 'ASC'],
-            25,
-            25 * ($page - 1)
+            $limit,
+            $limit * ($page - 1)
         );
 
         $total = $this->mediaRepository->countWithCriteria($criteria);
@@ -45,6 +46,7 @@ class MediaController extends AbstractController
             'medias' => $medias,
             'total' => $total,
             'page' => $page,
+            'limit' => $limit,
         ]);
     }
 

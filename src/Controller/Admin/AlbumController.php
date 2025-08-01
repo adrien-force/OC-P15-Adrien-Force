@@ -4,6 +4,7 @@ namespace App\Controller\Admin;
 
 use App\Entity\Album;
 use App\Form\AlbumType;
+use App\Repository\AlbumRepository;
 use App\Repository\MediaRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -17,15 +18,31 @@ class AlbumController extends AbstractController
     public function __construct(
         private readonly EntityManagerInterface $em,
         private readonly MediaRepository $mediaRepository,
+        private readonly AlbumRepository $albumRepository,
     ) {
     }
 
     #[Route(path: '/admin/album', name: 'admin_album_index')]
-    public function index(): Response
+    public function index(Request $request): Response
     {
-        $albums = $this->em->getRepository(Album::class)->findAll();
+        $page = $request->query->getInt('page', 1);
+        $limit = $request->query->getInt('limit', 25);
 
-        return $this->render('admin/album/index.html.twig', ['albums' => $albums]);
+        $albums = $this->albumRepository->findAllPaginated(
+            [],
+            ['id' => 'ASC'],
+            $limit,
+            $limit * ($page - 1)
+        );
+
+        $total = $this->albumRepository->countWithCriteria();
+
+        return $this->render('admin/album/index.html.twig', [
+            'albums' => $albums,
+            'total' => $total,
+            'page' => $page,
+            'limit' => $limit,
+        ]);
     }
 
     #[Route(path: '/admin/album/add', name: 'admin_album_add')]

@@ -21,28 +21,45 @@ class AlbumRepository extends ServiceEntityRepository
         parent::__construct($registry, Album::class);
     }
 
-    //    /**
-    //     * @return Album[] Returns an array of Album objects
-    //     */
-    //    public function findByExampleField($value): array
-    //    {
-    //        return $this->createQueryBuilder('m')
-    //            ->andWhere('m.exampleField = :val')
-    //            ->setParameter('val', $value)
-    //            ->orderBy('m.id', 'ASC')
-    //            ->setMaxResults(10)
-    //            ->getQuery()
-    //            ->getResult()
-    //        ;
-    //    }
+    /**
+     * @param array<string, string> $criteria
+     * @param array<string, string> $orderBy
+     *
+     * @return Album[]
+     */
+    public function findAllPaginated(array $criteria = [], array $orderBy = ['id' => 'ASC'], int $limit = 25, int $offset = 0): array
+    {
+        $qb = $this->createQueryBuilder('a');
 
-    //    public function findOneBySomeField($value): ?Album
-    //    {
-    //        return $this->createQueryBuilder('m')
-    //            ->andWhere('m.exampleField = :val')
-    //            ->setParameter('val', $value)
-    //            ->getQuery()
-    //            ->getOneOrNullResult()
-    //        ;
-    //    }
+        foreach ($criteria as $field => $value) {
+            $qb->andWhere("a.$field = :$field")
+                ->setParameter($field, $value);
+        }
+
+        foreach ($orderBy as $field => $direction) {
+            $qb->addOrderBy("a.$field", $direction);
+        }
+
+        return $qb
+            ->setFirstResult($offset)
+            ->setMaxResults($limit)
+            ->getQuery()
+            ->getResult();
+    }
+
+    /**
+     * @param array<string, string> $criteria
+     */
+    public function countWithCriteria(array $criteria = []): int
+    {
+        $qb = $this->createQueryBuilder('a')
+            ->select('count(a.id)');
+
+        foreach ($criteria as $field => $value) {
+            $qb->andWhere("a.$field = :$field")
+                ->setParameter($field, $value);
+        }
+
+        return (int) $qb->getQuery()->getSingleScalarResult();
+    }
 }

@@ -82,8 +82,6 @@ class MediaControllerTest extends WebTestCase
         self::assertNotNull($image->getUser());
         self::assertNotNull($image->getAlbum());
         self::assertSame($this->album->getId(), $image->getAlbum()->getId());
-
-        $client->request('GET', '/admin/media/delete/'.$image->getId());
     }
 
     public function testAddMediaForUser(): void
