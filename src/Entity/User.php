@@ -38,7 +38,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(type: 'string')]
     #[Assert\PasswordStrength(
         minScore: Assert\PasswordStrength::STRENGTH_VERY_STRONG,
-        message: 'Votre est trop faible. Veuillez utilisez un mot de passe plus fort.'
+        message: 'Votre mot de passe est trop faible. Veuillez utilisez un mot de passe plus fort.'
     )]
     private string $password;
 
