@@ -151,7 +151,7 @@ class ProfilerReportingCommand extends Command
 
     private function buildAbCommand(string $fullUrl, array $options): string
     {
-        $abCommand = sprintf('ab -n %d -c %d -v 2', $options['requests'], $options['concurrency']);
+        $abCommand = sprintf('ab -n %d -c %d -v 1', $options['requests'], $options['concurrency']);
 
         if (!empty($options['cookie'])) {
             $abCommand .= sprintf(' -C "%s"', $options['cookie']);
