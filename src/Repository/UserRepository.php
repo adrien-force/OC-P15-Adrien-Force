@@ -62,6 +62,9 @@ class UserRepository extends ServiceEntityRepository implements PasswordUpgrader
             ->getResult();
     }
 
+    /**
+     * @return User[]
+     */
     public function findAllGuestUsers(): array
     {
         return $this->createQueryBuilder('u')
@@ -70,6 +73,9 @@ class UserRepository extends ServiceEntityRepository implements PasswordUpgrader
             ->getResult();
     }
 
+    /**
+     * @return User[]
+     */
     public function findAllNonGuestUsers(): array
     {
         return $this->createQueryBuilder('u')
@@ -78,6 +84,9 @@ class UserRepository extends ServiceEntityRepository implements PasswordUpgrader
             ->getResult();
     }
 
+    /**
+     * @return User[]
+     */
     public function findAllGuestsWithEagerMedias(): array
     {
         return $this->createQueryBuilder('u')
@@ -92,7 +101,7 @@ class UserRepository extends ServiceEntityRepository implements PasswordUpgrader
      * Finds user with pagination and search capabilities.
      *
      * @param array<string, mixed> $criteria Filtering criteria
-     * @param array{id: string}    $orderBy  Order options
+     * @param array<string, string>    $orderBy  Order options
      * @param int                  $limit    Max results
      * @param int                  $offset   Result offset
      * @param string|null          $search   Search term for name or email
@@ -167,7 +176,7 @@ class UserRepository extends ServiceEntityRepository implements PasswordUpgrader
      * Finds non-guest users with pagination and search capabilities.
      *
      * @param array<string, mixed> $criteria Filtering criteria
-     * @param array{id: string}    $orderBy  Order options
+     * @param array<string, string>    $orderBy  Order options
      * @param int                  $limit    Max results
      * @param int                  $offset   Result offset
      * @param string|null          $search   Search term for name or email

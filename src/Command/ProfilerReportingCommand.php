@@ -10,6 +10,7 @@ use PhpOffice\PhpSpreadsheet\Style\Border;
 use PhpOffice\PhpSpreadsheet\Style\Color;
 use PhpOffice\PhpSpreadsheet\Style\Fill;
 use PhpOffice\PhpSpreadsheet\Style\NumberFormat;
+use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
@@ -20,9 +21,16 @@ use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\HttpKernel\DataCollector\TimeDataCollector;
 use Symfony\Component\HttpKernel\Profiler\Profiler;
 
+
 class ProfilerReportingCommand extends Command
 {
+    /**
+     * @var string
+     */
     protected static $defaultName = 'app:profiler:reporting';
+    /**
+     * @var string
+     */
     protected static $defaultDescription = 'Returns the latest N profiler tokens for a given route pattern';
 
     private Profiler $profiler;
@@ -54,7 +62,7 @@ class ProfilerReportingCommand extends Command
 
         $n = (int) $input->getOption('n');
         $s = (int) $input->getOption('s');
-        $v = $input->getOption('verbose');
+        $v = (bool) $input->getOption('verbose');
 
         if ($n < 1) {
             $io->error('Number of tokens must be at least 1.');
@@ -81,7 +89,12 @@ class ProfilerReportingCommand extends Command
         return Command::SUCCESS;
     }
 
-    private function processRoute(string $route, int $n, int $s, $v, array $benchmarkOptions, SymfonyStyle $io, OutputInterface $output): ?array
+    /**
+     * @param array<string, mixed> $benchmarkOptions
+     *
+     * @return array<int, array<int, mixed>>|null
+     */
+    private function processRoute(string $route, int $n, int $s, bool $v, array $benchmarkOptions, SymfonyStyle $io, OutputInterface $output): ?array
     {
         if ($benchmarkOptions['run']) {
             $this->runBenchmark($route, $benchmarkOptions, $io, $output);
@@ -107,6 +120,9 @@ class ProfilerReportingCommand extends Command
         return $rows;
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     private function getBenchmarkOptions(InputInterface $input): array
     {
         return [
@@ -118,6 +134,9 @@ class ProfilerReportingCommand extends Command
         ];
     }
 
+    /**
+     * @param array<string, mixed> $options
+     */
     private function runBenchmark(string $route, array $options, SymfonyStyle $io, OutputInterface $output): void
     {
         $fullUrl = rtrim($options['baseUrl'], '/').'/'.ltrim($route, '/');
@@ -149,6 +168,9 @@ class ProfilerReportingCommand extends Command
         sleep(2);
     }
 
+    /**
+     * @param array<string, mixed> $options
+     */
     private function buildAbCommand(string $fullUrl, array $options): string
     {
         $abCommand = sprintf('ab -n %d -c %d -v 1', $options['requests'], $options['concurrency']);
@@ -162,6 +184,9 @@ class ProfilerReportingCommand extends Command
         return $abCommand;
     }
 
+    /**
+     * @param resource[] $pipes
+     */
     private function handleProcessOutput(array $pipes, OutputInterface $output): void
     {
         while ($line = fgets($pipes[1])) {
@@ -187,6 +212,11 @@ class ProfilerReportingCommand extends Command
         return sprintf('var/log/profiler_%s_%d_%d.csv', $safeRoute, $n, $s);
     }
 
+    /**
+     * @param array<int, array<string, mixed>> $tokens
+     *
+     * @return array<int, array<int, mixed>>
+     */
     private function collectProfilerData(array $tokens): array
     {
         $rows = [];
@@ -237,6 +267,9 @@ class ProfilerReportingCommand extends Command
         return $rows;
     }
 
+    /**
+     * @return string[]
+     */
     private function getHeaders(): array
     {
         return [
@@ -252,15 +285,28 @@ class ProfilerReportingCommand extends Command
         ];
     }
 
+    /**
+     * @param string[]                     $headers
+     * @param array<int, array<int, mixed>> $rows
+     */
     private function displayTable(SymfonyStyle $io, int $n, string $route, array $headers, array $rows): void
     {
         $io->section(sprintf('Latest %d tokens for route pattern "%s":', $n, $route));
         $io->table($headers, $rows);
     }
 
+    /**
+     * @param string[]                     $headers
+     * @param array<int, array<int, mixed>> $rows
+     */
     private function generateCsv(string $csvPath, string $route, array $headers, array $rows, SymfonyStyle $io): void
     {
         $fp = fopen($csvPath, 'wb');
+        if (false === $fp) {
+            $io->error("Impossible d'ouvrir le fichier CSV : $csvPath");
+
+            return;
+        }
         fputcsv($fp, $headers);
 
         foreach ($rows as $row) {
@@ -271,6 +317,9 @@ class ProfilerReportingCommand extends Command
         $io->success("CSV généré: $csvPath");
     }
 
+    /**
+     * @param array<string, array<int, array<int, mixed>>> $allRouteData
+     */
     private function generateGlobalReport(array $allRouteData, int $n, int $s, SymfonyStyle $io): void
     {
         $spreadsheet = new Spreadsheet();
@@ -305,7 +354,10 @@ class ProfilerReportingCommand extends Command
         $io->success("Rapport global généré: $reportPath");
     }
 
-    private function generateSummarySheet($sheet, array $allRouteData): void
+    /**
+     * @param array<string, array<int, array<int, mixed>>> $allRouteData
+     */
+    private function generateSummarySheet(Worksheet $sheet, array $allRouteData): void
     {
         $headers = ['Route', 'Nombre de requêtes', 'Temps requête DB moyen (ms)', 'Écart type DB (ms)',
             'Temps rendu moyen (ms)', 'Écart type rendu (ms)', 'Requêtes SQL', 'Entités gérées'];
@@ -359,6 +411,9 @@ class ProfilerReportingCommand extends Command
             ->setFormatCode(NumberFormat::FORMAT_NUMBER_COMMA_SEPARATED1);
     }
 
+    /**
+     * @param float[] $values
+     */
     private function calculateAverage(array $values): float
     {
         if (empty($values)) {
@@ -368,6 +423,9 @@ class ProfilerReportingCommand extends Command
         return array_sum($values) / count($values);
     }
 
+    /**
+     * @param float[] $values
+     */
     private function calculateStandardDeviation(array $values): float
     {
         $count = count($values);
@@ -388,21 +446,23 @@ class ProfilerReportingCommand extends Command
     private function getSafeSheetName(string $route): string
     {
         $safeName = preg_replace('/[^a-zA-Z0-9_\-]/', '_', trim($route, '/'));
-        if ('' === $safeName) {
+        if (null === $safeName || '' === $safeName) {
             $safeName = 'root';
         }
 
         return substr($safeName, 0, 31);
     }
 
-    private function formatNumericColumns($sheet): void
+
+
+    private function formatNumericColumns(Worksheet $sheet): void
     {
         $lastRow = $sheet->getHighestRow();
         $sheet->getStyle('B2:C'.$lastRow)->getNumberFormat()
             ->setFormatCode(NumberFormat::FORMAT_NUMBER_COMMA_SEPARATED1);
     }
 
-    private function applyStyles($sheet, int $rowCount, int $columnCount): void
+    private function applyStyles(Worksheet $sheet, int $rowCount, int $columnCount): void
     {
         foreach (range('A', Coordinate::stringFromColumnIndex($columnCount)) as $columnId) {
             $sheet->getColumnDimension($columnId)->setAutoSize(true);

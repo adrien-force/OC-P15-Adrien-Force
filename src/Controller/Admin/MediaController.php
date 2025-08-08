@@ -64,7 +64,7 @@ class MediaController extends AbstractController
                     $media->setUser($user);
                 }
             }
-            $originalPath = 'uploads/'.md5(uniqid()).'.'.$media->getFile()->guessExtension();
+            $originalPath = 'uploads/'.md5(uniqid('', true)).'.'.$media->getFile()->guessExtension();
 
             $compressedPath = $this->imageCompressionService->compressUploadedFile($media->getFile(), $originalPath);
             $media->setPath($compressedPath);
