@@ -21,5 +21,5 @@
 - [X] Check for optimizations
 - [X] Write readme
 - [X] Write contributing guide
-- [ ] Write documentation
+- [X] Write documentation
 - [ ] Celebrate 🎉
