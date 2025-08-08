@@ -17,8 +17,8 @@
 - [X] Add pagination to back and front
 - [ ] Create CI pipeline
 - [X] Correct PHPStan LVL10 issues
-- [ ] Write performance report
-- [ ] Check for optimizations
+- [X] Write performance report
+- [X] Check for optimizations
 - [ ] Write readme
 - [ ] Write contributing guide
 - [ ] Write documentation
