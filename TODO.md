@@ -19,7 +19,7 @@
 - [X] Correct PHPStan LVL10 issues
 - [X] Write performance report
 - [X] Check for optimizations
-- [ ] Write readme
-- [ ] Write contributing guide
+- [X] Write readme
+- [X] Write contributing guide
 - [ ] Write documentation
 - [ ] Celebrate 🎉
