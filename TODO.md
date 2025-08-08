@@ -15,7 +15,7 @@
 - [X] Add remaining unit and functional tests
 - [X] Add integration tests
 - [X] Add pagination to back and front
-- [ ] Create CI pipeline
+- [X] Create CI pipeline
 - [X] Correct PHPStan LVL10 issues
 - [X] Write performance report
 - [X] Check for optimizations

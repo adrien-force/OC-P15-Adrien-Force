@@ -23,10 +23,20 @@ class ImageCompressionService
     {
         $image = $this->manager->read($file->getPathname());
 
-        $webpPath = $this->convertToWebP($targetPath);
+        // Convertir le chemin relatif en chemin absolu si nécessaire
+        $fullPath = $this->getAbsolutePath($targetPath);
+        
+        // Créer le répertoire si nécessaire
+        $directory = dirname($fullPath);
+        if (!is_dir($directory)) {
+            mkdir($directory, 0755, true);
+        }
+
+        $webpPath = $this->convertToWebP($fullPath);
         $this->processImage($image, $webpPath, $quality);
 
-        return $webpPath;
+        // Retourner le chemin relatif pour la base de données
+        return $this->getRelativePath($webpPath);
     }
 
     public function compressExistingFile(string $sourcePath, string $targetPath = null, int $quality = self::DEFAULT_QUALITY): string
@@ -79,5 +89,29 @@ class ImageCompressionService
 
         $size = filesize($filePath);
         return $size !== false ? $size : 0;
+    }
+
+    private function getAbsolutePath(string $path): string
+    {
+        // Si le chemin est déjà absolu, le retourner tel quel
+        if (str_starts_with($path, '/')) {
+            return $path;
+        }
+        
+        // Sinon, le préfixer avec le répertoire public
+        $projectRoot = dirname(__DIR__, 2);
+        return $projectRoot . '/public/' . $path;
+    }
+
+    private function getRelativePath(string $absolutePath): string
+    {
+        $projectRoot = dirname(__DIR__, 2);
+        $publicPath = $projectRoot . '/public/';
+        
+        if (str_starts_with($absolutePath, $publicPath)) {
+            return substr($absolutePath, strlen($publicPath));
+        }
+        
+        return $absolutePath;
     }
 }
