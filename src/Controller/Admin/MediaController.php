@@ -6,6 +6,7 @@ use App\Entity\Media;
 use App\Entity\User;
 use App\Form\MediaType;
 use App\Repository\MediaRepository;
+use App\Service\ImageCompressionService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\RedirectResponse;
@@ -18,6 +19,7 @@ class MediaController extends AbstractController
     public function __construct(
         private readonly EntityManagerInterface $em,
         private readonly MediaRepository $mediaRepository,
+        private readonly ImageCompressionService $imageCompressionService,
     ) {
     }
 
@@ -62,8 +64,11 @@ class MediaController extends AbstractController
                     $media->setUser($user);
                 }
             }
-            $media->setPath('uploads/'.md5(uniqid()).'.'.$media->getFile()->guessExtension());
-            $media->getFile()->move('uploads/', $media->getPath());
+            $originalPath = 'uploads/'.md5(uniqid()).'.'.$media->getFile()->guessExtension();
+
+            $compressedPath = $this->imageCompressionService->compressUploadedFile($media->getFile(), $originalPath);
+            $media->setPath($compressedPath);
+
             $this->em->persist($media);
             $this->em->flush();
 
