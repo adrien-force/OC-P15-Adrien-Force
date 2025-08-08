@@ -22,4 +22,4 @@
 - [X] Write readme
 - [X] Write contributing guide
 - [X] Write documentation
-- [ ] Celebrate 🎉
+- [X] Celebrate 🎉
