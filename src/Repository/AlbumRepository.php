@@ -24,10 +24,9 @@ class AlbumRepository extends ServiceEntityRepository
     /**
      * @param array<string, string> $criteria
      * @param array<string, string> $orderBy
-     *
      * @return Album[]
      */
-    public function findAllPaginated(array $criteria = [], array $orderBy = ['id' => 'ASC'], int $limit = 25, int $offset = 0): array
+    public function findAllPaginated(array $criteria = [], array $orderBy = ['id' => 'ASC'], int $limit = 10, int $offset = 0): array
     {
         $qb = $this->createQueryBuilder('a');
 
@@ -40,11 +39,14 @@ class AlbumRepository extends ServiceEntityRepository
             $qb->addOrderBy("a.$field", $direction);
         }
 
-        return $qb
+        /** @var Album[] $result */
+        $result = $qb
             ->setFirstResult($offset)
             ->setMaxResults($limit)
             ->getQuery()
             ->getResult();
+
+        return $result;
     }
 
     /**

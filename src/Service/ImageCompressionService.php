@@ -66,11 +66,18 @@ class ImageCompressionService
     private function convertToWebP(string $originalPath): string
     {
         $pathInfo = pathinfo($originalPath);
-        return $pathInfo['dirname'] . '/' . $pathInfo['filename'] . '.webp';
+        $dirname = $pathInfo['dirname'] ?? '';
+        $filename = $pathInfo['filename'];
+        return $dirname . '/' . $filename . '.webp';
     }
 
     public function getCompressedSize(string $filePath): int
     {
-        return file_exists($filePath) ? filesize($filePath) : 0;
+        if (!file_exists($filePath)) {
+            return 0;
+        }
+
+        $size = filesize($filePath);
+        return $size !== false ? $size : 0;
     }
 }

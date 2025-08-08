@@ -60,8 +60,10 @@ class ProfilerReportingCommand extends Command
     {
         $io = new SymfonyStyle($input, $output);
 
-        $n = (int) $input->getOption('n');
-        $s = (int) $input->getOption('s');
+        $nOption = $input->getOption('n');
+        $sOption = $input->getOption('s');
+        $n = is_numeric($nOption) ? (int) $nOption : 10;
+        $s = is_numeric($sOption) ? (int) $sOption : 0;
         $v = (bool) $input->getOption('verbose');
 
         if ($n < 1) {
@@ -105,11 +107,12 @@ class ProfilerReportingCommand extends Command
 
         if (!$tokens) {
             $io->warning('No tokens found for the given route pattern: '.$route);
-
             return null;
         }
 
-        $rows = $this->collectProfilerData($tokens);
+        /** @var array<int, array<string, mixed>> $typedTokens */
+        $typedTokens = $tokens;
+        $rows = $this->collectProfilerData($typedTokens);
         $headers = $this->getHeaders();
 
         if ($v > 1) {
@@ -125,10 +128,13 @@ class ProfilerReportingCommand extends Command
      */
     private function getBenchmarkOptions(InputInterface $input): array
     {
+        $requestsOption = $input->getOption('requests');
+        $concurrencyOption = $input->getOption('concurrency');
+
         return [
             'run' => $input->getOption('run-test'),
-            'requests' => (int) $input->getOption('requests'),
-            'concurrency' => (int) $input->getOption('concurrency'),
+            'requests' => is_numeric($requestsOption) ? (int) $requestsOption : 100,
+            'concurrency' => is_numeric($concurrencyOption) ? (int) $concurrencyOption : 1,
             'cookie' => $input->getOption('cookie'),
             'baseUrl' => $input->getOption('base-url'),
         ];
@@ -139,7 +145,8 @@ class ProfilerReportingCommand extends Command
      */
     private function runBenchmark(string $route, array $options, SymfonyStyle $io, OutputInterface $output): void
     {
-        $fullUrl = rtrim($options['baseUrl'], '/').'/'.ltrim($route, '/');
+        $baseUrl = is_string($options['baseUrl']) ? $options['baseUrl'] : 'http://127.0.0.1:8000';
+        $fullUrl = rtrim($baseUrl, '/').'/'.ltrim($route, '/');
         $abCommand = $this->buildAbCommand($fullUrl, $options);
 
         $io->section(sprintf('Executing benchmark on %s', $fullUrl));
@@ -151,7 +158,7 @@ class ProfilerReportingCommand extends Command
             2 => ['pipe', 'w'],
         ], $pipes);
 
-        if (is_resource($process)) {
+        if (is_resource($process) && is_array($pipes)) {
             $this->handleProcessOutput($pipes, $output);
             $exitCode = proc_close($process);
 
@@ -173,10 +180,13 @@ class ProfilerReportingCommand extends Command
      */
     private function buildAbCommand(string $fullUrl, array $options): string
     {
-        $abCommand = sprintf('ab -n %d -c %d -v 1', $options['requests'], $options['concurrency']);
+        $requests = is_int($options['requests']) ? $options['requests'] : 100;
+        $concurrency = is_int($options['concurrency']) ? $options['concurrency'] : 1;
+        $abCommand = sprintf('ab -n %d -c %d -v 1', $requests, $concurrency);
 
-        if (!empty($options['cookie'])) {
-            $abCommand .= sprintf(' -C "%s"', $options['cookie']);
+        $cookie = $options['cookie'] ?? '';
+        if (is_string($cookie) && !empty($cookie)) {
+            $abCommand .= sprintf(' -C "%s"', $cookie);
         }
 
         $abCommand .= sprintf(' "%s"', $fullUrl);
@@ -185,10 +195,14 @@ class ProfilerReportingCommand extends Command
     }
 
     /**
-     * @param resource[] $pipes
+     * @param mixed[] $pipes
      */
     private function handleProcessOutput(array $pipes, OutputInterface $output): void
     {
+        if (!isset($pipes[1], $pipes[2]) || !is_resource($pipes[1]) || !is_resource($pipes[2])) {
+            return;
+        }
+
         while ($line = fgets($pipes[1])) {
             $output->write($line);
         }
@@ -197,7 +211,9 @@ class ProfilerReportingCommand extends Command
             $output->write($line);
         }
 
-        fclose($pipes[0]);
+        if (is_resource($pipes[0])) {
+            fclose($pipes[0]);
+        }
         fclose($pipes[1]);
         fclose($pipes[2]);
     }
@@ -225,7 +241,7 @@ class ProfilerReportingCommand extends Command
             $token = $tokenData['token'] ?? null;
             $dbTimeMs = $renderTimeMs = $queryCount = $managedEntities = 'N/A';
 
-            if ($token) {
+            if (is_string($token)) {
                 $profile = $this->profiler->loadProfile($token);
 
                 if ($profile) {
@@ -251,14 +267,20 @@ class ProfilerReportingCommand extends Command
                 }
             }
 
+            $time = $tokenData['time'] ?? null;
+            $timeFormatted = is_int($time) ? date('Y-m-d H:i:s', $time) : '';
+            $ip = $tokenData['ip'] ?? '';
+            $method = $tokenData['method'] ?? '';
+            $url = $tokenData['url'] ?? '';
+
             $rows[] = [
-                isset($tokenData['time']) ? date('Y-m-d H:i:s', $tokenData['time']) : '',
+                $timeFormatted,
                 $dbTimeMs,
                 $renderTimeMs,
                 $token,
-                $tokenData['ip'] ?? '',
-                $tokenData['method'] ?? '',
-                $tokenData['url'] ?? '',
+                is_string($ip) ? $ip : '',
+                is_string($method) ? $method : '',
+                is_string($url) ? $url : '',
                 $queryCount,
                 $managedEntities,
             ];
@@ -310,7 +332,10 @@ class ProfilerReportingCommand extends Command
         fputcsv($fp, $headers);
 
         foreach ($rows as $row) {
-            fputcsv($fp, $row);
+            $csvRow = array_map(function ($value) {
+                return is_scalar($value) || null === $value ? (string) $value : '';
+            }, $row);
+            fputcsv($fp, $csvRow);
         }
 
         fclose($fp);
@@ -371,10 +396,14 @@ class ProfilerReportingCommand extends Command
             $entityCounts = [];
 
             foreach ($rows as $data) {
-                $queryTime = 'N/A' !== $data[1] ? (float) $data[1] : null;
-                $renderTime = 'N/A' !== $data[2] ? (float) $data[2] : null;
-                $queryCount = 'N/A' !== $data[7] ? (int) $data[7] : null;
-                $entityCount = 'N/A' !== $data[8] ? (int) $data[8] : null;
+                if (count($data) < 9) {
+                    continue;
+                }
+
+                $queryTime = 'N/A' !== $data[1] && is_numeric($data[1]) ? (float) $data[1] : null;
+                $renderTime = 'N/A' !== $data[2] && is_numeric($data[2]) ? (float) $data[2] : null;
+                $queryCount = 'N/A' !== $data[7] && is_numeric($data[7]) ? (int) $data[7] : null;
+                $entityCount = 'N/A' !== $data[8] && is_numeric($data[8]) ? (int) $data[8] : null;
 
                 if (null !== $queryTime) {
                     $queryTimes[] = $queryTime;
@@ -392,13 +421,10 @@ class ProfilerReportingCommand extends Command
 
             $sheet->setCellValue('A'.$row, $route);
             $sheet->setCellValue('B'.$row, count($rows));
-
             $sheet->setCellValue('C'.$row, $this->calculateAverage($queryTimes));
             $sheet->setCellValue('D'.$row, $this->calculateStandardDeviation($queryTimes));
-
             $sheet->setCellValue('E'.$row, $this->calculateAverage($renderTimes));
             $sheet->setCellValue('F'.$row, $this->calculateStandardDeviation($renderTimes));
-
             $sheet->setCellValue('G'.$row, $this->calculateAverage($queryCounts));
             $sheet->setCellValue('H'.$row, $this->calculateAverage($entityCounts));
 

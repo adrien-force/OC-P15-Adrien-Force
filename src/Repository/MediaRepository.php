@@ -48,11 +48,14 @@ class MediaRepository extends ServiceEntityRepository
             $qb->addOrderBy("m.$field", $direction);
         }
 
-        return $qb
+        /** @var Media[] $result */
+        $result = $qb
             ->setMaxResults($limit)
             ->setFirstResult($offset)
             ->getQuery()
             ->getResult();
+
+        return $result;
     }
 
     /**
@@ -72,9 +75,11 @@ class MediaRepository extends ServiceEntityRepository
                ->setParameter($field, $value);
         }
 
-        return $qb
+        $result = $qb
             ->getQuery()
             ->getSingleScalarResult();
+
+        return is_int($result) ? $result : 0;
     }
 
     /**
@@ -97,12 +102,15 @@ class MediaRepository extends ServiceEntityRepository
                ->setParameter('album', $album);
         }
 
-        return $qb
-            ->orderBy('m.id', 'DESC') // Newest first
+        /** @var Media[] $result */
+        $result = $qb
+            ->orderBy('m.id', 'DESC')
             ->setMaxResults($limit)
             ->setFirstResult($offset)
             ->getQuery()
             ->getResult();
+
+        return $result;
     }
 
     /**

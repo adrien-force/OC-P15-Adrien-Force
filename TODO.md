@@ -16,7 +16,7 @@
 - [X] Add integration tests
 - [X] Add pagination to back and front
 - [ ] Create CI pipeline
-- [ ] Correct PHPStan LVL10 issues
+- [X] Correct PHPStan LVL10 issues
 - [ ] Write performance report
 - [ ] Check for optimizations
 - [ ] Write readme

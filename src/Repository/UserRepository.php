@@ -43,11 +43,14 @@ class UserRepository extends ServiceEntityRepository implements PasswordUpgrader
      */
     public function findByRole(string $role): array
     {
-        return $this->createQueryBuilder('u')
+        /** @var User[] $result */
+        $result = $this->createQueryBuilder('u')
             ->where('JSONB_CONTAINS(u.roles, :role) = true')
             ->setParameter('role', sprintf('"%s"', $role))
             ->getQuery()
             ->getResult();
+
+        return $result;
     }
 
     /**
@@ -55,11 +58,14 @@ class UserRepository extends ServiceEntityRepository implements PasswordUpgrader
      */
     public function findWithoutRole(string $role): array
     {
-        return $this->createQueryBuilder('u')
+        /** @var User[] $result */
+        $result = $this->createQueryBuilder('u')
             ->where('JSONB_CONTAINS(u.roles, :role) = false')
             ->setParameter('role', sprintf('"%s"', $role))
             ->getQuery()
             ->getResult();
+
+        return $result;
     }
 
     /**
@@ -67,10 +73,13 @@ class UserRepository extends ServiceEntityRepository implements PasswordUpgrader
      */
     public function findAllGuestUsers(): array
     {
-        return $this->createQueryBuilder('u')
+        /** @var User[] $result */
+        $result = $this->createQueryBuilder('u')
             ->where('u.isGuest = true')
             ->getQuery()
             ->getResult();
+
+        return $result;
     }
 
     /**
@@ -78,10 +87,13 @@ class UserRepository extends ServiceEntityRepository implements PasswordUpgrader
      */
     public function findAllNonGuestUsers(): array
     {
-        return $this->createQueryBuilder('u')
+        /** @var User[] $result */
+        $result = $this->createQueryBuilder('u')
             ->where('u.isGuest = false')
             ->getQuery()
             ->getResult();
+
+        return $result;
     }
 
     /**
@@ -89,12 +101,15 @@ class UserRepository extends ServiceEntityRepository implements PasswordUpgrader
      */
     public function findAllGuestsWithEagerMedias(): array
     {
-        return $this->createQueryBuilder('u')
+        /** @var User[] $result */
+        $result = $this->createQueryBuilder('u')
             ->leftJoin('u.medias', 'm')
             ->addSelect('m')
             ->where('u.isGuest = true')
             ->getQuery()
             ->getResult();
+
+        return $result;
     }
 
     /**
@@ -113,30 +128,30 @@ class UserRepository extends ServiceEntityRepository implements PasswordUpgrader
         $qb = $this->createQueryBuilder('u')
             ->where('u.isGuest = true');
 
-        // Add search capability
         if ($search) {
             $qb->andWhere('(u.name LIKE :search OR u.email LIKE :search)')
                ->setParameter('search', '%'.$search.'%');
         }
 
-        // Add criteria if provided
         foreach ($criteria as $field => $value) {
-            if ('isGuest' !== $field) { // isGuest already handled in base where clause
+            if ('isGuest' !== $field) {
                 $qb->andWhere("u.$field = :$field")
                    ->setParameter($field, $value);
             }
         }
 
-        // Add sorting
         foreach ($orderBy as $field => $direction) {
             $qb->addOrderBy("u.$field", $direction);
         }
 
-        return $qb
+        /** @var User[] $result */
+        $result = $qb
             ->setMaxResults($limit)
             ->setFirstResult($offset)
             ->getQuery()
             ->getResult();
+
+        return $result;
     }
 
     /**
@@ -188,30 +203,30 @@ class UserRepository extends ServiceEntityRepository implements PasswordUpgrader
         $qb = $this->createQueryBuilder('u')
             ->where('u.isGuest = false');
 
-        // Add search capability
         if ($search) {
             $qb->andWhere('(u.name LIKE :search OR u.email LIKE :search)')
                ->setParameter('search', '%'.$search.'%');
         }
 
-        // Add criteria if provided
         foreach ($criteria as $field => $value) {
-            if ('isGuest' !== $field) { // isGuest already handled in base where clause
+            if ('isGuest' !== $field) {
                 $qb->andWhere("u.$field = :$field")
                    ->setParameter($field, $value);
             }
         }
 
-        // Add sorting
         foreach ($orderBy as $field => $direction) {
             $qb->addOrderBy("u.$field", $direction);
         }
 
-        return $qb
+        /** @var User[] $result */
+        $result = $qb
             ->setMaxResults($limit)
             ->setFirstResult($offset)
             ->getQuery()
             ->getResult();
+
+        return $result;
     }
 
     /**

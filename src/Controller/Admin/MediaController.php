@@ -32,7 +32,10 @@ class MediaController extends AbstractController
         $criteria = [];
 
         if (!$this->isGranted(User::ADMIN_ROLE)) {
-            $criteria['user'] = $this->getUser();
+            $user = $this->getUser();
+            if ($user instanceof User) {
+                $criteria['user'] = $user;
+            }
         }
 
         $medias = $this->mediaRepository->findAllMediaPaginatedWithAlbumAndUser(
@@ -64,9 +67,20 @@ class MediaController extends AbstractController
                     $media->setUser($user);
                 }
             }
-            $originalPath = 'uploads/'.md5(uniqid('', true)).'.'.$media->getFile()->guessExtension();
 
-            $compressedPath = $this->imageCompressionService->compressUploadedFile($media->getFile(), $originalPath);
+            $file = $media->getFile();
+            if ($file === null) {
+                throw new \InvalidArgumentException('File is required');
+            }
+
+            $extension = $file->guessExtension();
+            if ($extension === null) {
+                throw new \InvalidArgumentException('Could not determine file extension');
+            }
+
+            $originalPath = 'uploads/'.md5(uniqid('', true)).'.'.$extension;
+
+            $compressedPath = $this->imageCompressionService->compressUploadedFile($file, $originalPath);
             $media->setPath($compressedPath);
 
             $this->em->persist($media);

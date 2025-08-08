@@ -39,7 +39,8 @@ class CompressImagesCommand extends Command
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $io = new SymfonyStyle($input, $output);
-        $quality = (int) $input->getOption('quality');
+        $qualityOption = $input->getOption('quality');
+        $quality = is_numeric($qualityOption) ? (int) $qualityOption : 85;
         $dryRun = $input->getOption('dry-run');
 
         if ($quality < 1 || $quality > 100) {
