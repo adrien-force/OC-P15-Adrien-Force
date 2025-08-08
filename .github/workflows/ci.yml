@@ -1,0 +1,92 @@
+name: CI Pipeline
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+env:
+  PHP_VERSION: '8.2'
+  NODE_VERSION: '18'
+  COMPOSER_CACHE: ~/.composer/cache
+
+jobs:
+  ci:
+    name: Continuous Integration
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_USER: postgres
+          POSTGRES_DB: ina_zaoui_test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ env.PHP_VERSION }}
+          extensions: ctype, iconv, json, pdo, pdo_pgsql, intl, gd, zip
+          coverage: none
+          tools: composer:v2
+
+      - name: Get composer cache directory
+        id: composer-cache
+        run: echo "dir=$(composer config cache-files-dir)" >> $GITHUB_OUTPUT
+
+      - name: Cache composer dependencies
+        uses: actions/cache@v4
+        with:
+          path: ${{ steps.composer-cache.outputs.dir }}
+          key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
+          restore-keys: ${{ runner.os }}-composer-
+
+      - name: Install dependencies
+        run: make composer
+
+      - name: Copy .env file for testing
+        run: |
+          cp .env .env.test
+          echo "DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:5432/ina_zaoui_test?serverVersion=15&charset=utf8" >> .env.test
+
+      - name: Setup test database
+        run: |
+          php bin/console doctrine:migrations:migrate --no-interaction --env=test
+
+      - name: Load test fixtures
+        run: php bin/console doctrine:fixtures:load --no-interaction --env=test
+
+      - name: Create uploads directory for tests
+        run: mkdir -p public/uploads
+
+      - name: Run code linting (PHP-CS-Fixer)
+        run: make lint
+
+      - name: Run static analysis (PHPStan)
+        run: make phpstan
+
+      - name: Run tests (PHPUnit)
+        run: php -d memory_limit=3G ./bin/phpunit
+
+      - name: Upload test artifacts
+        uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: test-artifacts
+          path: |
+            var/log/
+            var/cache/test/
+          retention-days: 3

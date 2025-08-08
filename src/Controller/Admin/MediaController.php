@@ -95,9 +95,20 @@ class MediaController extends AbstractController
     #[Route(path: '/admin/media/delete/{id}', name: 'admin_media_delete')]
     public function delete(Media $media): RedirectResponse
     {
+        // Construire le chemin complet pour la suppression du fichier
+        $filePath = $media->getPath();
+        if (!str_starts_with($filePath, '/')) {
+            $projectRoot = dirname(__DIR__, 2);
+            $filePath = $projectRoot . '/public/' . $filePath;
+        }
+
         $this->em->remove($media);
         $this->em->flush();
-        unlink($media->getPath());
+        
+        // Supprimer le fichier s'il existe
+        if (file_exists($filePath)) {
+            unlink($filePath);
+        }
 
         return $this->redirectToRoute('admin_media_index');
     }
