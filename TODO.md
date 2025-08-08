@@ -14,7 +14,7 @@
 - [X] Add invitee management feature
 - [X] Add remaining unit and functional tests
 - [X] Add integration tests
-- [ ] Add pagination to back and front
+- [X] Add pagination to back and front
 - [ ] Create CI pipeline
 - [ ] Correct PHPStan LVL10 issues
 - [ ] Write performance report
