@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Tests\Fonctionnal\Controller;
+namespace Fonctionnal\Controller;
 
 use App\Entity\User;
 use App\Repository\AlbumRepository;
@@ -17,7 +17,6 @@ class AlbumControllerTest extends WebTestCase
 
     private User $baseUser;
     private User $adminUser;
-    private UserRepository $userRepository;
     private AlbumRepository $albumRepository;
     private MediaRepository $mediaRepository;
     private KernelBrowser $client;
@@ -27,11 +26,11 @@ class AlbumControllerTest extends WebTestCase
         parent::setUp();
 
         $this->client = static::createClient();
-        $this->userRepository = static::getContainer()->get(UserRepository::class);
+        $userRepository = static::getContainer()->get(UserRepository::class);
         $this->albumRepository = static::getContainer()->get(AlbumRepository::class);
         $this->mediaRepository = static::getContainer()->get(MediaRepository::class);
-        $this->baseUser = $this->userRepository->findAllGuestUsers()[0];
-        $this->adminUser = $this->userRepository->findByRole(User::ADMIN_ROLE)[0];
+        $this->baseUser = $userRepository->findAllGuestUsers()[0];
+        $this->adminUser = $userRepository->findByRole(User::ADMIN_ROLE)[0];
 
     }
     public function testIndexRenders(): void

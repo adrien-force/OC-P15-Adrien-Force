@@ -1,21 +1,20 @@
 <?php
 
-namespace App\Tests\Fonctionnal\Controller;
+namespace Fonctionnal\Controller;
 
 use App\Entity\Album;
 use App\Entity\User;
 use App\Repository\AlbumRepository;
 use App\Repository\MediaRepository;
 use App\Repository\UserRepository;
+use Symfony\Bundle\FrameworkBundle\KernelBrowser;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 
 class MediaControllerTest extends WebTestCase
 {
 
-    private UserRepository $userRepository;
     private MediaRepository $mediaRepository;
-    private AlbumRepository $albumRepository;
     private User $adminUser;
     private User $baseUser;
     private User $guestUser;
@@ -27,25 +26,31 @@ class MediaControllerTest extends WebTestCase
 
         static::createClient();
 
-        // Créer le répertoire uploads pour les tests
         $uploadsDir = __DIR__ . '/../../../public/uploads';
         if (!is_dir($uploadsDir)) {
             mkdir($uploadsDir, 0755, true);
         }
 
-        $this->userRepository = static::getContainer()->get(UserRepository::class);
+        $userRepository = static::getContainer()->get(UserRepository::class);
         $this->mediaRepository = static::getContainer()->get(MediaRepository::class);
-        $this->albumRepository = static::getContainer()->get(AlbumRepository::class);
-        $this->adminUser = $this->userRepository->findByRole(User::ADMIN_ROLE)[0];
-        $this->baseUser = $this->userRepository->findByRole(User::USER_ROLE)[0];
+        $albumRepository = static::getContainer()->get(AlbumRepository::class);
+        $this->adminUser = $userRepository->findByRole(User::ADMIN_ROLE)[0];
+        $this->baseUser = $userRepository->findByRole(User::USER_ROLE)[0];
 
-        $guestUsers = $this->userRepository->findAllGuestUsers();
+        $guestUsers = $userRepository->findAllGuestUsers();
         $this->guestUser = !empty($guestUsers) ? $guestUsers[0] : $this->baseUser;
-        $this->album = $this->albumRepository->findAll()[0];
+        $this->album = $albumRepository->findAll()[0];
+    }
+
+    private function getTestClient(): KernelBrowser
+    {
+        $client =  static::getClient();
+        assert($client instanceof KernelBrowser);
+        return $client;
     }
     public function testIndex(): void
     {
-        $client = static::getClient();
+        $client = $this->getTestClient();
         $client->loginUser($this->adminUser);
         $client->request('GET', '/admin/media');
         self::assertResponseIsSuccessful();
@@ -57,7 +62,7 @@ class MediaControllerTest extends WebTestCase
 
     public function testAddMediaForAdmin(): void
     {
-        $client = static::getClient();
+        $client = $this->getTestClient();
         $client->loginUser($this->adminUser);
 
         $client->request('GET', '/admin/media/add');
@@ -68,7 +73,7 @@ class MediaControllerTest extends WebTestCase
             'img.jpg',
             'image/jpeg',
             null,
-            true // test mode
+            true
         );
 
         $client->submitForm('Ajouter', [
@@ -78,14 +83,10 @@ class MediaControllerTest extends WebTestCase
             'media[user]' => $this->adminUser->getId(),
         ]);
 
-        // Vérifier si une redirection existe avant de la suivre
         if ($client->getResponse()->isRedirection()) {
             $client->followRedirect();
-            self::assertResponseIsSuccessful();
-        } else {
-            // Si pas de redirection, vérifier les erreurs du formulaire
-            self::assertResponseIsSuccessful();
         }
+        self::assertResponseIsSuccessful();
 
 
         $image = $this->mediaRepository->findOneBy(['title' => 'Test Image']);
@@ -97,7 +98,7 @@ class MediaControllerTest extends WebTestCase
 
     public function testAddMediaForUser(): void
     {
-        $client = static::getClient();
+        $client = $this->getTestClient();
         $client->loginUser($this->baseUser);
 
         $client->request('GET', '/admin/media/add');
@@ -108,7 +109,7 @@ class MediaControllerTest extends WebTestCase
             'img.jpg',
             'image/jpeg',
             null,
-            true // test mode
+            true
         );
 
         $client->submitForm('Ajouter', [
@@ -116,14 +117,10 @@ class MediaControllerTest extends WebTestCase
             'media[file]' => $uploadedFile,
         ]);
 
-        // Vérifier si une redirection existe avant de la suivre
         if ($client->getResponse()->isRedirection()) {
             $client->followRedirect();
-            self::assertResponseIsSuccessful();
-        } else {
-            // Si pas de redirection, vérifier les erreurs du formulaire
-            self::assertResponseIsSuccessful();
         }
+        self::assertResponseIsSuccessful();
 
 
         $image = $this->mediaRepository->findOneBy(['title' => 'Test Image']);
@@ -135,7 +132,7 @@ class MediaControllerTest extends WebTestCase
 
     public function testDeleteMedia(): void
     {
-        $client = static::getClient();
+        $client = $this->getTestClient();
         $client->loginUser($this->adminUser);
 
         $client->request('GET', '/admin/media/add');
@@ -146,7 +143,7 @@ class MediaControllerTest extends WebTestCase
             'img.jpg',
             'image/jpeg',
             null,
-            true // test mode
+            true
         );
 
         $client->submitForm('Ajouter', [
@@ -155,7 +152,6 @@ class MediaControllerTest extends WebTestCase
             'media[user]' => $this->adminUser->getId(),
         ]);
 
-        // Vérifier si une redirection existe avant de la suivre
         if ($client->getResponse()->isRedirection()) {
             $client->followRedirect();
         }
@@ -169,12 +165,38 @@ class MediaControllerTest extends WebTestCase
 
         $client->request('GET', '/admin/media/delete/'.$media->getId());
         
-        // Vérifier si une redirection existe avant de la suivre
         if ($client->getResponse()->isRedirection()) {
             $client->followRedirect();
-            self::assertResponseIsSuccessful();
-        } else {
-            self::assertResponseIsSuccessful();
+        }
+        self::assertResponseIsSuccessful();
+    }
+
+
+    public function testDeleteMediaWithFileExists(): void
+    {
+        $client = $this->getTestClient();
+        $client->loginUser($this->adminUser);
+
+        $uploadsDir = __DIR__ . '/../../../public/uploads';
+        $testFile = $uploadsDir . '/test_file_to_delete.jpg';
+        
+        copy(__DIR__.'/MediaContent/img.jpg', $testFile);
+        self::assertFileExists($testFile);
+
+        $media = $this->mediaRepository->findOneBy(['title' => 'Test Image 2']);
+        if ($media) {
+            $media->setPath('uploads/test_file_to_delete.jpg');
+            $em = static::getContainer()->get('doctrine.orm.entity_manager');
+            $em->flush();
+
+            $client->request('GET', '/admin/media/delete/'.$media->getId());
+            
+            if ($client->getResponse()->isRedirection()) {
+                $client->followRedirect();
+                self::assertResponseIsSuccessful();
+            }
+
+            self::assertFileDoesNotExist($testFile);
         }
     }
 

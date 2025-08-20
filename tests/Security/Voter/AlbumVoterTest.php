@@ -1,12 +1,15 @@
 <?php
 
-namespace App\Tests\Security\Voter;
+namespace Security\Voter;
 
 use App\Entity\Album;
 use App\Entity\User;
 use App\Security\Voter\AlbumVoter;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
+use ReflectionClass;
+use ReflectionException;
+use stdClass;
 use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
 use Symfony\Component\Security\Core\Authorization\AccessDecisionManagerInterface;
 
@@ -30,24 +33,27 @@ class AlbumVoterTest extends TestCase
         $this->token->method('getUser')->willReturn($user);
     }
 
+    /**
+     * @throws ReflectionException
+     */
     private function callVoteOnAttribute(string $attribute, $subject, TokenInterface $token = null): bool
     {
-        $ref = new \ReflectionClass($this->voter);
-        $method = $ref->getMethod('voteOnAttribute');
-        $method->setAccessible(true);
-
-        return $method->invoke($this->voter, $attribute, $subject, $token ?? $this->token);
+        $ref = new ReflectionClass($this->voter);
+        return $ref->getMethod('voteOnAttribute')->invoke($this->voter, $attribute, $subject, $token ?? $this->token);
     }
 
+    /**
+     * @throws ReflectionException
+     */
     private function callSupports(string $attribute, $subject): bool
     {
-        $ref = new \ReflectionClass($this->voter);
-        $method = $ref->getMethod('supports');
-        $method->setAccessible(true);
-
-        return $method->invoke($this->voter, $attribute, $subject);
+        $ref = new ReflectionClass($this->voter);
+        return $ref->getMethod('supports')->invoke($this->voter, $attribute, $subject);
     }
 
+    /**
+     * @throws ReflectionException
+     */
     public function testVoteOnAttributeEditAsAdmin(): void
     {
         $this->adm->method('decide')->willReturn(true);
@@ -55,6 +61,9 @@ class AlbumVoterTest extends TestCase
         $this->assertTrue($this->callVoteOnAttribute(AlbumVoter::EDIT, $this->album));
     }
 
+    /**
+     * @throws ReflectionException
+     */
     public function testVoteOnAttributeEditAsNonAdmin(): void
     {
         $this->adm->method('decide')->willReturn(false);
@@ -62,21 +71,33 @@ class AlbumVoterTest extends TestCase
         $this->assertFalse($this->callVoteOnAttribute(AlbumVoter::EDIT, $this->album));
     }
 
+    /**
+     * @throws ReflectionException
+     */
     public function testSupportsReturnsFalseForUnsupportedAttribute(): void
     {
         $this->assertFalse($this->callSupports('unsupported', $this->album));
     }
 
+    /**
+     * @throws ReflectionException
+     */
     public function testSupportsReturnsFalseForNonAlbumSubject(): void
     {
-        $this->assertFalse($this->callSupports(AlbumVoter::VIEW, new \stdClass()));
+        $this->assertFalse($this->callSupports(AlbumVoter::VIEW, new stdClass()));
     }
 
+    /**
+     * @throws ReflectionException
+     */
     public function testSupportsReturnsTrueForSupportedAttributeAndAlbum(): void
     {
         $this->assertTrue($this->callSupports(AlbumVoter::VIEW, $this->album));
     }
 
+    /**
+     * @throws ReflectionException
+     */
     public function testVoteOnAttributeReturnsFalseIfUserNotConnected(): void
     {
         $token = $this->createMock(TokenInterface::class);
@@ -85,11 +106,17 @@ class AlbumVoterTest extends TestCase
         $this->assertFalse($this->callVoteOnAttribute(AlbumVoter::VIEW, $this->album, $token));
     }
 
+    /**
+     * @throws ReflectionException
+     */
     public function testVoteOnAttributeView(): void
     {
         $this->assertTrue($this->callVoteOnAttribute(AlbumVoter::VIEW, $this->album));
     }
 
+    /**
+     * @throws ReflectionException
+     */
     public function testVoteOnAttributeDeleteAsAdmin(): void
     {
         $this->adm->method('decide')->willReturn(true);
@@ -97,6 +124,9 @@ class AlbumVoterTest extends TestCase
         $this->assertTrue($this->callVoteOnAttribute(AlbumVoter::DELETE, $this->album));
     }
 
+    /**
+     * @throws ReflectionException
+     */
     public function testVoteOnAttributeDeleteAsNonAdmin(): void
     {
         $this->adm->method('decide')->willReturn(false);

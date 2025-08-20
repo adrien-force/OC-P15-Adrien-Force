@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Tests\Fonctionnal\Form;
+namespace Fonctionnal\Form;
 
 use App\Entity\User;
 use App\Repository\UserRepository;
@@ -9,7 +9,6 @@ use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 class GuestFormTest extends WebTestCase
 {
     private UserRepository $userRepository;
-    private User $adminUser;
     private User $guestUser;
 
     protected function setUp(): void
@@ -19,10 +18,10 @@ class GuestFormTest extends WebTestCase
         $client = static::createClient();
 
         $this->userRepository = static::getContainer()->get(UserRepository::class);
-        $this->adminUser = $this->userRepository->findByRole(User::ADMIN_ROLE)[0];
+        $adminUser = $this->userRepository->findByRole(User::ADMIN_ROLE)[0];
         $this->guestUser = $this->userRepository->findAllGuestUsers()[0];
 
-        $client->loginUser($this->adminUser);
+        $client->loginUser($adminUser);
     }
 
     public function testThatGuestUpdateFormRendersCorrectly(): void
@@ -64,6 +63,6 @@ class GuestFormTest extends WebTestCase
         $client->submit($form);
 
         self::assertResponseIsUnprocessable();
-        $this->assertSelectorTextContains('.invalid-feedback', 'Cette valeur n\'est pas une adresse email valide.');
+        self::assertSelectorTextContains('.invalid-feedback', 'Cette valeur n\'est pas une adresse email valide.');
     }
 }

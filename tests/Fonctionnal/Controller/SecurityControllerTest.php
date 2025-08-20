@@ -1,8 +1,9 @@
 <?php
 
-namespace App\Tests\Fonctionnal\Controller;
+namespace Fonctionnal\Controller;
 
 use App\Repository\UserRepository;
+use Symfony\Bundle\FrameworkBundle\KernelBrowser;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 
 class SecurityControllerTest extends WebTestCase
@@ -16,18 +17,26 @@ class SecurityControllerTest extends WebTestCase
         static::createClient();
         $this->userRepository = static::getContainer()->get(UserRepository::class);
     }
+
+    private function getTestClient(): KernelBrowser
+    {
+        $client =  static::getClient();
+        assert($client instanceof KernelBrowser);
+        return $client;
+    }
+
     public function testLoginPageRendersCorrectly(): void
     {
-        $client = static::getClient();
+        $client = $this->getTestClient();
         $client->request('GET', '/login');
 
         self::assertResponseIsSuccessful();
-        $this->assertSelectorTextContains('form button', 'Connexion');
+        self::assertSelectorTextContains('form button', 'Connexion');
     }
 
     public function testLoginFormSubmission(): void
     {
-        $client = static::getClient();
+        $client = $this->getTestClient();
 
         $crawler = $client->request('GET', '/admin/register');
 
@@ -55,7 +64,7 @@ class SecurityControllerTest extends WebTestCase
 
     public function testThatLoginRedirectsToHomeIfAlreadyAuthenticated(): void
     {
-        $client = static::getClient();
+        $client = $this->getTestClient();
         $client->loginUser($this->userRepository->findAll()[0]);
 
         $client->request('GET', '/login');
@@ -67,7 +76,7 @@ class SecurityControllerTest extends WebTestCase
 
     public function testLogoutFunctionality(): void
     {
-        $client = static::getClient();
+        $client = $this->getTestClient();
         $client->loginUser($this->userRepository->findAll()[0]);
 
         $client->request('GET', '/logout');

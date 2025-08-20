@@ -1,17 +1,22 @@
 <?php
 
-namespace App\Tests\Fonctionnal\Controller;
+namespace Fonctionnal\Controller;
 
+use App\Entity\Media;
 use App\Entity\User;
+use App\Repository\MediaRepository;
 use App\Repository\UserRepository;
+use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Bundle\FrameworkBundle\KernelBrowser;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 
 class GuestControllerTest extends WebTestCase
 {
     private UserRepository $userRepository;
+    private MediaRepository $mediaRepository;
+    private EntityManagerInterface $em;
     private User $adminUser;
     private User $baseUser;
-    private User $guestUser;
     protected function setUp(): void
     {
         parent::setUp();
@@ -19,16 +24,17 @@ class GuestControllerTest extends WebTestCase
         static::createClient();
 
         $this->userRepository = static::getContainer()->get(UserRepository::class);
+        $this->mediaRepository = static::getContainer()->get(MediaRepository::class);
+        $this->em = static::getContainer()->get(EntityManagerInterface::class);
         $this->adminUser = $this->userRepository->findByRole(User::ADMIN_ROLE)[0];
         $this->baseUser = $this->userRepository->findByRole(User::USER_ROLE)[0];
-
-        $guestUsers = $this->userRepository->findAllGuestUsers();
-        $this->guestUser = !empty($guestUsers) ? $guestUsers[0] : $this->baseUser;
     }
 
-    private function getGuestUser(): User
+    private function getTestClient(): KernelBrowser
     {
-        return $this->guestUser;
+        $client =  static::getClient();
+        assert($client instanceof KernelBrowser);
+        return $client;
     }
 
     private function getUserById(int $id): User
@@ -38,30 +44,30 @@ class GuestControllerTest extends WebTestCase
 
     public function testIndexPageRendersCorrectly(): void
     {
-        $client = static::getClient();
+        $client = $this->getTestClient();
         $client->loginUser($this->adminUser);
 
-        $crawler = $client->request('GET', '/admin/guest');
+        $client->request('GET', '/admin/guest');
 
         self::assertResponseIsSuccessful();
 
-        $this->assertSelectorTextContains('main div h1', 'Invités');
+        self::assertSelectorTextContains('main div h1', 'Invités');
     }
 
     public function testManagePageRendersCorrectly(): void
     {
-        $client = static::getClient();
+        $client = $this->getTestClient();
         $client->loginUser($this->adminUser);
 
-        $crawler = $client->request('GET', '/admin/guest/manage');
+        $client->request('GET', '/admin/guest/manage');
 
         self::assertResponseIsSuccessful();
-        $this->assertSelectorTextContains('main div h1', 'Gérer les invités');
+        self::assertSelectorTextContains('main div h1', 'Gérer les invités');
     }
 
     public function testAddRoleFunctionality(): void
     {
-        $client = static::getClient();
+        $client = $this->getTestClient();
         $client->loginUser($this->adminUser);
 
         $nonGuestUsers = $this->userRepository->findAllNonGuestUsers();
@@ -86,10 +92,9 @@ class GuestControllerTest extends WebTestCase
 
     public function testUpdateGuestFunctionality(): void
     {
-        $client = static::getClient();
+        $client = $this->getTestClient();
         $client->loginUser($this->adminUser);
 
-        // Find a user with guest role
         $guestUsers = $this->userRepository->findAllGuestUsers();
 
         if (empty($guestUsers)) {
@@ -98,15 +103,12 @@ class GuestControllerTest extends WebTestCase
 
         $guestUser = $guestUsers[1];
 
-        // Go to update page
         $crawler = $client->request('GET', '/admin/guest/update/' . $guestUser->getId());
 
         self::assertResponseIsSuccessful();
 
-        // Check if form exists
         $this->assertCount(1, $crawler->filter('form[name="guest"]'));
 
-        // Submit form with updated data
         $form = $crawler->selectButton('Modifier')->form();
         $form['guest[name]'] = 'Updated Firstname';
         $form['guest[email]'] = 'test@email.com';
@@ -114,19 +116,15 @@ class GuestControllerTest extends WebTestCase
 
         $client->submit($form);
 
-        // Should redirect to index page
         self::assertResponseRedirects('/admin/guest');
 
-        // Follow redirect
         $client->followRedirect();
 
-        // Check if we're on the index page
         self::assertResponseIsSuccessful();
         self::assertSelectorTextContains('main div h1', 'Invités');
 
         $guestUser = $this->getUserById($guestUser->getId());
 
-        // Check if user data was updated
         $this->assertEquals('Updated Firstname', $guestUser->getName());
         $this->assertEquals('test@email.com', $guestUser->getEmail());
         $this->assertEquals('Updated Description', $guestUser->getDescription());
@@ -134,7 +132,7 @@ class GuestControllerTest extends WebTestCase
 
     public function testThatUpdateGuestFunctionnalityRedirectsWhenUserIsNotGuest(): void
     {
-        $client = static::getClient();
+        $client = $this->getTestClient();
         $client->loginUser($this->adminUser);
 
         $nonGuestUsers = $this->userRepository->findAllNonGuestUsers();
@@ -145,7 +143,7 @@ class GuestControllerTest extends WebTestCase
 
         $guestUser = $nonGuestUsers[0];
 
-        $crawler = $client->request('GET', '/admin/guest/update/' . $guestUser->getId());
+        $client->request('GET', '/admin/guest/update/' . $guestUser->getId());
 
         self::assertResponseStatusCodeSame(302);
         self::assertResponseRedirects('/admin/guest/manage');
@@ -154,10 +152,9 @@ class GuestControllerTest extends WebTestCase
 
     public function testRemoveRoleFunctionality(): void
     {
-        $client = static::getClient();
+        $client = $this->getTestClient();
         $client->loginUser($this->adminUser);
 
-        // Find a user with guest role
         $guestUsers = $this->userRepository->findAllGuestUsers();
 
         if (empty($guestUsers)) {
@@ -166,36 +163,129 @@ class GuestControllerTest extends WebTestCase
 
         $guestUser = $guestUsers[1];
 
-        // Remove guest role
         $client->request('GET', '/admin/guest/remove-role/' . $guestUser->getId());
 
-        // Should redirect to index page
         self::assertResponseRedirects('/admin/guest');
 
-        // Follow redirect
         $client->followRedirect();
 
-        // Check if we're on the index page
         self::assertResponseIsSuccessful();
-        $this->assertSelectorTextContains('main div h1', 'Invités');
+        self::assertSelectorTextContains('main div h1', 'Invités');
 
         $guestUser = $this->getUserById($guestUser->getId());
 
-        // Check if user no longer has guest role
         $this->assertFalse($guestUser->isGuest());
     }
 
     public function testNonAdminCannotAccessGuestPages(): void
     {
-        $client = static::getClient();
+        $client = $this->getTestClient();
         $client->loginUser($this->baseUser);
 
-        // Try to access index page
         $client->request('GET', '/admin/guest');
-        self::assertResponseStatusCodeSame(403); // Forbidden
+        self::assertResponseStatusCodeSame(403);
 
-        // Try to access manage page
         $client->request('GET', '/admin/guest/manage');
-        self::assertResponseStatusCodeSame(403); // Forbidden
+        self::assertResponseStatusCodeSame(403);
+    }
+
+    public function testDeleteGuestUserWithMedias(): void
+    {
+        $client = $this->getTestClient();
+        $client->loginUser($this->adminUser);
+
+        $guestUser = new User();
+        $guestUser->setName('Test Guest')
+            ->setEmail('testguest@example.com')
+            ->setIsGuest(true)
+            ->setPassword('hashedpassword');
+
+        $this->em->persist($guestUser);
+        $this->em->flush();
+
+        $media1 = new Media();
+        $media1->setTitle('Test Media 1')
+            ->setPath('uploads/test1.jpg')
+            ->setUser($guestUser);
+
+        $media2 = new Media();
+        $media2->setTitle('Test Media 2')
+            ->setPath('uploads/test2.jpg')
+            ->setUser($guestUser);
+
+        $this->em->persist($media1);
+        $this->em->persist($media2);
+        $this->em->flush();
+
+        $this->assertTrue($guestUser->isGuest());
+        $this->assertEquals($guestUser, $media1->getUser());
+        $this->assertEquals($guestUser, $media2->getUser());
+
+        $userId = $guestUser->getId();
+
+        $client->request('GET', '/admin/guest/delete/' . $userId);
+
+        self::assertResponseRedirects('/admin/guest');
+        $client->followRedirect();
+        self::assertResponseIsSuccessful();
+
+        $deletedUser = $this->userRepository->find($userId);
+        $this->assertNull($deletedUser);
+
+        $updatedMedia1 = $this->mediaRepository->find($media1->getId());
+        $updatedMedia2 = $this->mediaRepository->find($media2->getId());
+        $this->assertNotNull($updatedMedia1);
+        $this->assertNotNull($updatedMedia2);
+        $this->assertNull($updatedMedia1->getUser());
+        $this->assertNull($updatedMedia2->getUser());
+    }
+
+    public function testDeleteGuestUserWithoutMedias(): void
+    {
+        $client = $this->getTestClient();
+        $client->loginUser($this->adminUser);
+
+        $guestUser = new User();
+        $guestUser->setName('Test Guest No Media')
+            ->setEmail('testguest2@example.com')
+            ->setIsGuest(true)
+            ->setPassword('hashedpassword');
+
+        $this->em->persist($guestUser);
+        $this->em->flush();
+
+        $userId = $guestUser->getId();
+
+        $this->assertTrue($guestUser->isGuest());
+
+        $client->request('GET', '/admin/guest/delete/' . $userId);
+
+        self::assertResponseRedirects('/admin/guest');
+        $client->followRedirect();
+        self::assertResponseIsSuccessful();
+
+        $deletedUser = $this->userRepository->find($userId);
+        $this->assertNull($deletedUser);
+    }
+
+    public function testDeleteNonGuestUserDoesNotDelete(): void
+    {
+        $client = $this->getTestClient();
+        $client->loginUser($this->adminUser);
+
+        $nonGuestUser = $this->adminUser;
+        $userId = $nonGuestUser->getId();
+
+        $this->assertFalse($nonGuestUser->isGuest());
+
+        $client->request('GET', '/admin/guest/delete/' . $userId);
+
+        self::assertResponseRedirects('/admin/guest');
+        $client->followRedirect();
+        self::assertResponseIsSuccessful();
+
+        $existingUser = $this->userRepository->find($userId);
+        $this->assertNotNull($existingUser);
+        $this->assertEquals($nonGuestUser->getName(), $existingUser->getName());
     }
 }

@@ -1,9 +1,10 @@
 <?php
 
-namespace App\Tests\Fonctionnal\Controller;
+namespace Fonctionnal\Controller;
 
 use App\Repository\AlbumRepository;
 use App\Repository\UserRepository;
+use Symfony\Bundle\FrameworkBundle\KernelBrowser;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 
 class HomeControllerTest extends WebTestCase
@@ -18,23 +19,30 @@ class HomeControllerTest extends WebTestCase
         $this->albumRepository = static::getContainer()->get(AlbumRepository::class);
     }
 
+    private function getTestClient(): KernelBrowser
+    {
+        $client =  static::getClient();
+        assert($client instanceof KernelBrowser);
+        return $client;
+    }
+
     public function testHomePage(): void
     {
-        $client = static::getClient();
+        $client = $this->getTestClient();
         $client->request('GET', '/');
         self::assertResponseIsSuccessful();
     }
 
     public function testGuestsPage(): void
     {
-        $client = static::getClient();
+        $client = $this->getTestClient();
         $client->request('GET', '/guests');
         self::assertResponseIsSuccessful();
     }
 
     public function testGuestPage(): void
     {
-        $client = static::getClient();
+        $client = $this->getTestClient();
         $guest = $this->userRepository->findAllGuestUsers()[0] ?? null;
         if ($guest) {
             $client->request('GET', '/guest/' . $guest->getId());
@@ -46,7 +54,7 @@ class HomeControllerTest extends WebTestCase
 
     public function testPortfolioPage(): void
     {
-        $client = static::getClient();
+        $client = $this->getTestClient();
         $client->request('GET', '/portfolio');
         self::assertResponseIsSuccessful();
 
@@ -61,11 +69,9 @@ class HomeControllerTest extends WebTestCase
 
     public function testAboutPage(): void
     {
-        $client = static::getClient();
+        $client = $this->getTestClient();
         $client->request('GET', '/about');
         self::assertResponseIsSuccessful();
     }
-
-
 
 }

@@ -64,7 +64,6 @@ class ProfilerReportingCommand extends Command
         $sOption = $input->getOption('s');
         $n = is_numeric($nOption) ? (int) $nOption : 10;
         $s = is_numeric($sOption) ? (int) $sOption : 0;
-        $v = (bool) $input->getOption('verbose');
 
         if ($n < 1) {
             $io->error('Number of tokens must be at least 1.');
@@ -78,7 +77,7 @@ class ProfilerReportingCommand extends Command
         $allRouteData = [];
 
         foreach ($routes as $route) {
-            $routeData = $this->processRoute($route, $n, $s, $v, $benchmarkOptions, $io, $output);
+            $routeData = $this->processRoute($route, $n, $s, $benchmarkOptions, $io, $output);
             if ($routeData) {
                 $allRouteData[$route] = $routeData;
             }
@@ -96,7 +95,7 @@ class ProfilerReportingCommand extends Command
      *
      * @return array<int, array<int, mixed>>|null
      */
-    private function processRoute(string $route, int $n, int $s, bool $v, array $benchmarkOptions, SymfonyStyle $io, OutputInterface $output): ?array
+    private function processRoute(string $route, int $n, int $s, array $benchmarkOptions, SymfonyStyle $io, OutputInterface $output): ?array
     {
         if ($benchmarkOptions['run']) {
             $this->runBenchmark($route, $benchmarkOptions, $io, $output);
@@ -115,9 +114,6 @@ class ProfilerReportingCommand extends Command
         $rows = $this->collectProfilerData($typedTokens);
         $headers = $this->getHeaders();
 
-        if ($v > 1) {
-            $this->displayTable($io, $n, $route, $headers, $rows);
-        }
         $this->generateCsv($csvPath, $route, $headers, $rows, $io);
 
         return $rows;

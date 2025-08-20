@@ -1,20 +1,21 @@
 <?php
 
-namespace App\Tests\Fonctionnal\Form;
+namespace Fonctionnal\Form;
 
 use App\Entity\User;
 use App\Repository\UserRepository;
+use Generator;
+use Symfony\Bundle\FrameworkBundle\KernelBrowser;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
+use Symfony\Component\DomCrawler\Field\FileFormField;
 
 class MediaFormTest extends WebTestCase
 {
-    private UserRepository $userRepository;
 
     private User $adminUser;
-    private User $baseUser;
 
 
-    public function provideUncorrectMediaFiles(): \Generator
+    public function provideUncorrectMediaFiles(): Generator
     {
         yield ['image.gif' => 'image.gif'];
         yield ['image.svg' => 'image.svg'];
@@ -28,14 +29,20 @@ class MediaFormTest extends WebTestCase
 
         static::createClient();
 
-        $this->userRepository = static::getContainer()->get(UserRepository::class);
-        $this->adminUser = $this->userRepository->findByRole(User::ADMIN_ROLE)[0];
-        $this->baseUser = $this->userRepository->findByRole(User::USER_ROLE)[0];
+        $userRepository = static::getContainer()->get(UserRepository::class);
+        $this->adminUser = $userRepository->findByRole(User::ADMIN_ROLE)[0];
+    }
+
+    private function getTestClient(): KernelBrowser
+    {
+        $client =  static::getClient();
+        assert($client instanceof KernelBrowser);
+        return $client;
     }
 
     public function testThatMediaFormRendersCorrectly(): void
     {
-        $client = static::getClient();
+        $client = $this->getTestClient();
 
         $client->loginUser($this->adminUser);
 
@@ -52,7 +59,7 @@ class MediaFormTest extends WebTestCase
 
     public function testThatFileAbove2MOAreRejected(): void
     {
-        $client = static::getClient();
+        $client = $this->getTestClient();
 
         $client->loginUser($this->adminUser);
 
@@ -60,7 +67,9 @@ class MediaFormTest extends WebTestCase
 
         $form = $crawler->selectButton('Ajouter')->form();
 
-        $form['media[file]']->upload(__DIR__.'/MediaContent/large_image.jpeg');
+        /** @var FileFormField $fileField */
+        $fileField = $form['media[file]'];
+        $fileField->upload(__DIR__.'/MediaContent/large_image.jpeg');
         $form['media[title]'] = 'Test Image';
 
         $client->submit($form);
@@ -73,7 +82,7 @@ class MediaFormTest extends WebTestCase
      */
     public function testThatFormRefusesUncorrectExtensions(string $media): void
     {
-        $client = static::getClient();
+        $client = $this->getTestClient();
 
         $client->loginUser($this->adminUser);
 
@@ -81,12 +90,13 @@ class MediaFormTest extends WebTestCase
 
         $form = $crawler->selectButton('Ajouter')->form();
 
-        $form['media[file]']->upload(__DIR__.'/MediaContent/' . $media);
+        /** @var FileFormField $fileField */
+        $fileField = $form['media[file]'];
+        $fileField->upload(__DIR__.'/MediaContent/' . $media);
         $form['media[title]'] = 'Test Image';
 
         $client->submit($form);
 
         self::assertResponseIsUnprocessable();
     }
-
 }

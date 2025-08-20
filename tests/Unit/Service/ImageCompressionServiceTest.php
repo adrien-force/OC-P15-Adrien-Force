@@ -1,9 +1,12 @@
 <?php
 
-namespace App\Tests\Unit\Service;
+namespace Unit\Service;
 
 use App\Service\ImageCompressionService;
+use InvalidArgumentException;
 use PHPUnit\Framework\TestCase;
+use ReflectionClass;
+use ReflectionException;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 
 class ImageCompressionServiceTest extends TestCase
@@ -13,12 +16,6 @@ class ImageCompressionServiceTest extends TestCase
     protected function setUp(): void
     {
         $this->service = new ImageCompressionService();
-    }
-
-    public function testConstructor(): void
-    {
-        $service = new ImageCompressionService();
-        $this->assertInstanceOf(ImageCompressionService::class, $service);
     }
 
     public function testCompressUploadedFileWithDefaultQuality(): void
@@ -44,7 +41,6 @@ class ImageCompressionServiceTest extends TestCase
         
         $result = $this->service->compressUploadedFile($uploadedFile, $targetPath);
         
-        $this->assertIsString($result);
         $this->assertStringEndsWith('.webp', $result);
         
         // Clean up
@@ -80,7 +76,6 @@ class ImageCompressionServiceTest extends TestCase
         
         $result = $this->service->compressUploadedFile($uploadedFile, $targetPath, 70);
         
-        $this->assertIsString($result);
         $this->assertStringEndsWith('.webp', $result);
         
         // Clean up
@@ -95,7 +90,7 @@ class ImageCompressionServiceTest extends TestCase
 
     public function testCompressExistingFileThrowsExceptionWhenFileNotExists(): void
     {
-        $this->expectException(\InvalidArgumentException::class);
+        $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage('Source file does not exist: /nonexistent/file.jpg');
         
         $this->service->compressExistingFile('/nonexistent/file.jpg');
@@ -109,7 +104,6 @@ class ImageCompressionServiceTest extends TestCase
         
         $result = $this->service->compressExistingFile($tempFile);
         
-        $this->assertIsString($result);
         $this->assertStringEndsWith('.webp', $result);
         
         // Original file should be deleted if different from webp path
@@ -137,9 +131,8 @@ class ImageCompressionServiceTest extends TestCase
         
         $result = $this->service->compressExistingFile($tempFile, $targetPath);
         
-        $this->assertIsString($result);
         $this->assertStringEndsWith('.webp', $result);
-        $this->assertFileExists($tempFile); // Original should still exist
+        $this->assertFileExists($tempFile);
         
         // Clean up
         unlink($tempFile);
@@ -159,7 +152,6 @@ class ImageCompressionServiceTest extends TestCase
         
         $result = $this->service->compressExistingFile($tempFile, null, 60);
         
-        $this->assertIsString($result);
         $this->assertStringEndsWith('.webp', $result);
         
         // Clean up
@@ -175,7 +167,6 @@ class ImageCompressionServiceTest extends TestCase
         
         $size = $this->service->getCompressedSize($tempFile);
         
-        $this->assertIsInt($size);
         $this->assertGreaterThan(0, $size);
         $this->assertEquals(strlen('test content'), $size);
         
@@ -189,94 +180,102 @@ class ImageCompressionServiceTest extends TestCase
         $this->assertEquals(0, $size);
     }
 
-    public function testGetCompressedSizeWithFilesizeFailure(): void
-    {
-        // This test case is difficult to reliably simulate filesize() returning false
-        // Skip it as the real-world scenario is already covered by other tests
-        $this->markTestSkipped('Filesize failure simulation is environment-dependent');
-    }
-
+    /**
+     * @throws ReflectionException
+     */
     public function testConvertToWebPWithFullPath(): void
     {
-        $reflection = new \ReflectionClass($this->service);
+        $reflection = new ReflectionClass($this->service);
         $method = $reflection->getMethod('convertToWebP');
-        $method->setAccessible(true);
-        
+
         $originalPath = '/path/to/image.jpg';
         $webpPath = $method->invokeArgs($this->service, [$originalPath]);
         
         $this->assertEquals('/path/to/image.webp', $webpPath);
     }
 
+    /**
+     * @throws ReflectionException
+     */
     public function testConvertToWebPWithFileOnly(): void
     {
-        $reflection = new \ReflectionClass($this->service);
+        $reflection = new ReflectionClass($this->service);
         $method = $reflection->getMethod('convertToWebP');
-        $method->setAccessible(true);
-        
+
         $originalPath = 'image.jpg';
         $webpPath = $method->invokeArgs($this->service, [$originalPath]);
         
         $this->assertEquals('./image.webp', $webpPath);
     }
 
+    /**
+     * @throws ReflectionException
+     */
     public function testConvertToWebPWithNoExtension(): void
     {
-        $reflection = new \ReflectionClass($this->service);
+        $reflection = new ReflectionClass($this->service);
         $method = $reflection->getMethod('convertToWebP');
-        $method->setAccessible(true);
-        
+
         $originalPath = '/path/to/imagename';
         $webpPath = $method->invokeArgs($this->service, [$originalPath]);
         
         $this->assertEquals('/path/to/imagename.webp', $webpPath);
     }
 
+    /**
+     * @throws ReflectionException
+     */
     public function testGetAbsolutePathWithAbsolutePath(): void
     {
-        $reflection = new \ReflectionClass($this->service);
+        $reflection = new ReflectionClass($this->service);
         $method = $reflection->getMethod('getAbsolutePath');
-        $method->setAccessible(true);
-        
+
         $absolutePath = '/absolute/path/to/file.jpg';
         $result = $method->invokeArgs($this->service, [$absolutePath]);
         
         $this->assertEquals($absolutePath, $result);
     }
 
+    /**
+     * @throws ReflectionException
+     */
     public function testGetAbsolutePathWithRelativePath(): void
     {
-        $reflection = new \ReflectionClass($this->service);
+        $reflection = new ReflectionClass($this->service);
         $method = $reflection->getMethod('getAbsolutePath');
-        $method->setAccessible(true);
-        
+
         $relativePath = 'uploads/image.jpg';
         $result = $method->invokeArgs($this->service, [$relativePath]);
         
-        $projectRoot = dirname(__DIR__, 3); // Adjust based on actual test location
+        // The service uses dirname(__DIR__, 3) from src/Service directory
+        $projectRoot = dirname(__DIR__, 3); // tests/Unit/Service -> project root
         $expected = $projectRoot . '/public/' . $relativePath;
         $this->assertEquals($expected, $result);
     }
 
+    /**
+     * @throws ReflectionException
+     */
     public function testGetRelativePathWithPublicPath(): void
     {
-        $reflection = new \ReflectionClass($this->service);
+        $reflection = new ReflectionClass($this->service);
         $method = $reflection->getMethod('getRelativePath');
-        $method->setAccessible(true);
-        
-        $projectRoot = dirname(__DIR__, 3);
+
+        $projectRoot = dirname(__DIR__, 3); // tests/Unit/Service -> project root
         $absolutePath = $projectRoot . '/public/uploads/image.jpg';
         $result = $method->invokeArgs($this->service, [$absolutePath]);
         
         $this->assertEquals('uploads/image.jpg', $result);
     }
 
+    /**
+     * @throws ReflectionException
+     */
     public function testGetRelativePathWithNonPublicPath(): void
     {
-        $reflection = new \ReflectionClass($this->service);
+        $reflection = new ReflectionClass($this->service);
         $method = $reflection->getMethod('getRelativePath');
-        $method->setAccessible(true);
-        
+
         $absolutePath = '/some/other/path/image.jpg';
         $result = $method->invokeArgs($this->service, [$absolutePath]);
         
@@ -300,9 +299,8 @@ class ImageCompressionServiceTest extends TestCase
         $nonExistentDir = sys_get_temp_dir() . '/test_new_dir_' . uniqid('', true);
         $targetPath = $nonExistentDir . '/subdir/compressed.jpg';
         
-        $result = $this->service->compressUploadedFile($uploadedFile, $targetPath);
+        $this->service->compressUploadedFile($uploadedFile, $targetPath);
         
-        $this->assertIsString($result);
         $this->assertDirectoryExists(dirname($nonExistentDir . '/subdir/compressed.webp'));
         
         // Clean up
@@ -320,22 +318,96 @@ class ImageCompressionServiceTest extends TestCase
 
     public function testCompressExistingFileWithWebpSameFile(): void
     {
-        // Test the case where original file is already webp and should not be deleted
         $tempFile = tempnam(sys_get_temp_dir(), 'test_existing') . '.webp';
         $testImageContent = base64_decode('/9j/4AAQSkZJRgABAQEAYABgAAD/2wBDAAEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQH/2wBDAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQH/wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFQEBAQAAAAAAAAAAAAAAAAAAAAX/xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oADAMBAAIRAxEAPwA/wA==');
         file_put_contents($tempFile, $testImageContent);
         
         $result = $this->service->compressExistingFile($tempFile);
         
-        $this->assertIsString($result);
         $this->assertStringEndsWith('.webp', $result);
-        // File should still exist since it was already webp
         $this->assertFileExists($tempFile);
         
         // Clean up
         if (file_exists($tempFile)) {
             unlink($tempFile);
         }
+    }
+
+    public function testScalingOfLargeImage(): void
+    {
+        // Create a large test image (2000x2000) that will exceed MAX_WIDTH and MAX_HEIGHT
+        $largeImageContent = $this->createLargeImageData();
+        
+        $tempFile = tempnam(sys_get_temp_dir(), 'test_large_image') . '.jpg';
+        file_put_contents($tempFile, $largeImageContent);
+
+        $uploadedFile = new UploadedFile(
+            $tempFile,
+            'large_test.jpg',
+            'image/jpeg',
+            null,
+            true
+        );
+
+        $targetDir = sys_get_temp_dir() . '/test_large_output';
+        if (!is_dir($targetDir)) {
+            mkdir($targetDir, 0755, true);
+        }
+        
+        $targetPath = $targetDir . '/large_compressed.jpg';
+        
+        // This should trigger the scale method in processImage
+        $result = $this->service->compressUploadedFile($uploadedFile, $targetPath);
+        
+        $this->assertStringEndsWith('.webp', $result);
+        $this->assertFileExists($result);
+        
+        // Clean up
+        unlink($tempFile);
+        if (file_exists($result)) {
+            unlink($result);
+        }
+        if (is_dir($targetDir)) {
+            rmdir($targetDir);
+        }
+    }
+
+    private function createLargeImageData(): string
+    {
+        // Create a minimal but large JPEG image programmatically
+        // This is a base64-encoded 2x2 JPEG that we'll use as template
+        $smallImageContent = base64_decode('/9j/4AAQSkZJRgABAQEAYABgAAD/2wBDAAEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQH/2wBDAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQH/wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFQEBAQAAAAAAAAAAAAAAAAAAAAX/xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oADAMBAAIRAxEAPwA/wA==');
+        
+        // Create a larger image by creating an image resource and scaling it up
+        $tempSmallFile = tempnam(sys_get_temp_dir(), 'small_image') . '.jpg';
+        file_put_contents($tempSmallFile, $smallImageContent);
+        
+        // Use GD to create a large image
+        $source = imagecreatefromjpeg($tempSmallFile);
+        $large = imagecreate(2000, 1500);
+        $white = imagecolorallocate($large, 255, 255, 255);
+        if ($source === false) {
+            // Fallback: create a simple large image with GD
+            // This exceeds MAX_WIDTH (1920) and MAX_HEIGHT (1080)
+            $black = imagecolorallocate($large, 0, 0, 0);
+            imagefill($large, 0, 0, $white);
+            imagestring($large, 5, 10, 10, 'Large Test Image', $black);
+        } else {
+            imagefill($large, 0, 0, $white);
+            imagedestroy($source);
+        }
+        
+        $largeTempFile = tempnam(sys_get_temp_dir(), 'large_temp') . '.jpg';
+        imagejpeg($large, $largeTempFile, 90);
+        imagedestroy($large);
+        
+        $largeImageData = file_get_contents($largeTempFile);
+        
+        // Clean up temp files
+        unlink($tempSmallFile);
+        unlink($largeTempFile);
+        
+        return $largeImageData;
     }
 
     protected function tearDown(): void

@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Tests\Fonctionnal\Form;
+namespace Fonctionnal\Form;
 
 use App\Entity\Album;
 use App\Entity\User;

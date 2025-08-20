@@ -1,17 +1,21 @@
 <?php
 
-namespace App\Tests\Unit\Command;
+namespace Unit\Command;
 
 use App\Command\CompressImagesCommand;
 use App\Service\ImageCompressionService;
+use Exception;
+use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
+use ReflectionClass;
+use ReflectionException;
 use Symfony\Component\Console\Application;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Tester\CommandTester;
 
 class CompressImagesCommandTest extends TestCase
 {
-    private ImageCompressionService $imageCompressionService;
+    private ImageCompressionService&MockObject $imageCompressionService;
     private CompressImagesCommand $command;
     private CommandTester $commandTester;
     private string $tempProjectDir;
@@ -21,9 +25,8 @@ class CompressImagesCommandTest extends TestCase
     {
         $this->imageCompressionService = $this->createMock(ImageCompressionService::class);
         
-        // Create temporary project directory structure
-        $this->tempProjectDir = sys_get_temp_dir() . '/test_project_' . uniqid('', true);
-        $this->tempUploadsDir = $this->tempProjectDir . '/public/uploads';
+        $this->tempProjectDir = sprintf("%s/test_project_%s", sys_get_temp_dir(), uniqid('', true));
+        $this->tempUploadsDir = sprintf("%s/public/uploads", $this->tempProjectDir);
         mkdir($this->tempUploadsDir, 0755, true);
         
         $this->command = new CompressImagesCommand(
@@ -39,7 +42,6 @@ class CompressImagesCommandTest extends TestCase
 
     protected function tearDown(): void
     {
-        // Clean up temporary directories
         if (is_dir($this->tempProjectDir)) {
             $this->removeDirectory($this->tempProjectDir);
         }
@@ -53,8 +55,7 @@ class CompressImagesCommandTest extends TestCase
             $this->imageCompressionService,
             '/test/project'
         );
-        
-        $this->assertInstanceOf(CompressImagesCommand::class, $command);
+
         $this->assertEquals('app:compress-images', $command->getName());
         $this->assertEquals('Compress existing images in the uploads folder', $command->getDescription());
     }
@@ -97,7 +98,6 @@ class CompressImagesCommandTest extends TestCase
 
     public function testExecuteWithNonNumericQualityUsesDefault(): void
     {
-        // Create a test image file
         $testImagePath = $this->tempUploadsDir . '/test.jpg';
         $testImageContent = base64_decode('/9j/4AAQSkZJRgABAQEAYABgAAD/2wBDAAEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQH/2wBDAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQH/wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFQEBAQAAAAAAAAAAAAAAAAAAAAX/xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oADAMBAAIRAxEAPwA/wA==');
         file_put_contents($testImagePath, $testImageContent);
@@ -105,10 +105,10 @@ class CompressImagesCommandTest extends TestCase
         $this->imageCompressionService
             ->expects($this->once())
             ->method('compressExistingFile')
-            ->with($this->callback(function($path) use ($testImagePath) {
+            ->with($this->callback(function ($path) use ($testImagePath) {
                 return basename($path) === basename($testImagePath);
-            }), null, 85) // Default quality should be 85
-            ->willReturn($testImagePath . '.webp');
+            }), null, 85)
+            ->willReturn(sprintf("%s.webp", $testImagePath));
         
         $this->commandTester->execute([
             '--quality' => 'invalid'
@@ -119,9 +119,8 @@ class CompressImagesCommandTest extends TestCase
 
     public function testExecuteWithNonExistentUploadsDirectoryReturnsFailure(): void
     {
-        // Remove the uploads directory
         rmdir($this->tempUploadsDir);
-        rmdir($this->tempProjectDir . '/public');
+        rmdir(sprintf("%s/public", $this->tempProjectDir));
         
         $this->commandTester->execute([]);
         
@@ -139,15 +138,13 @@ class CompressImagesCommandTest extends TestCase
 
     public function testExecuteWithDryRunMode(): void
     {
-        // Create test image files
         $testImages = ['test1.jpg', 'test2.png', 'test3.webp'];
         foreach ($testImages as $imageName) {
-            $testImagePath = $this->tempUploadsDir . '/' . $imageName;
+            $testImagePath = sprintf("%s/%s", $this->tempUploadsDir, $imageName);
             $testImageContent = base64_decode('/9j/4AAQSkZJRgABAQEAYABgAAD/2wBDAAEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQH/2wBDAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQH/wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFQEBAQAAAAAAAAAAAAAAAAAAAAX/xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oADAMBAAIRAxEAPwA/wA==');
             file_put_contents($testImagePath, $testImageContent);
         }
         
-        // Service should not be called in dry-run mode
         $this->imageCompressionService
             ->expects($this->never())
             ->method('compressExistingFile');
@@ -166,20 +163,19 @@ class CompressImagesCommandTest extends TestCase
 
     public function testExecuteSuccessfullyCompressesImages(): void
     {
-        // Create test image files
         $testImages = ['image1.jpg', 'image2.png'];
         foreach ($testImages as $imageName) {
-            $testImagePath = $this->tempUploadsDir . '/' . $imageName;
-            $testImageContent = str_repeat('test_content', 100); // Make it larger
+            $testImagePath = sprintf("%s/%s", $this->tempUploadsDir, $imageName);
+            $testImageContent = str_repeat('test_content', 100);
             file_put_contents($testImagePath, $testImageContent);
         }
         
         $this->imageCompressionService
             ->expects($this->exactly(2))
             ->method('compressExistingFile')
-            ->willReturnCallback(function ($filePath, $targetPath, $quality) {
+            ->willReturnCallback(function ($filePath) {
                 $webpPath = str_replace(['.jpg', '.png'], '.webp', $filePath);
-                file_put_contents($webpPath, 'compressed_content'); // Smaller content
+                file_put_contents($webpPath, 'compressed_content');
                 return $webpPath;
             });
         
@@ -196,37 +192,34 @@ class CompressImagesCommandTest extends TestCase
 
     public function testExecuteHandlesCompressionErrors(): void
     {
-        // Create test image file
-        $testImagePath = $this->tempUploadsDir . '/error_image.jpg';
+        $testImagePath = sprintf("%s/error_image.jpg", $this->tempUploadsDir);
         file_put_contents($testImagePath, 'test_content');
         
         $this->imageCompressionService
             ->expects($this->once())
             ->method('compressExistingFile')
-            ->willThrowException(new \Exception('Compression failed'));
+            ->willThrowException(new Exception('Compression failed'));
         
         $this->commandTester->execute([]);
         
-        $this->assertEquals(Command::SUCCESS, $this->commandTester->getStatusCode()); // Still success overall
+        $this->assertEquals(Command::SUCCESS, $this->commandTester->getStatusCode());
         $output = $this->commandTester->getDisplay();
         $this->assertStringContainsString('Failed to compress error_image.jpg: Compression failed', $output);
     }
 
     public function testExecuteWithVariousImageExtensions(): void
     {
-        // Create test images with different extensions
         $extensions = ['jpg', 'jpeg', 'png', 'webp', 'bmp', 'tiff', 'heic'];
         foreach ($extensions as $ext) {
-            $testImagePath = $this->tempUploadsDir . "/test.{$ext}";
+            $testImagePath = sprintf("%s/test.$ext", $this->tempUploadsDir);
             file_put_contents($testImagePath, 'test_content');
         }
         
-        // Also create unsupported file that should be ignored
-        file_put_contents($this->tempUploadsDir . '/document.pdf', 'pdf_content');
-        file_put_contents($this->tempUploadsDir . '/text.txt', 'text_content');
+        file_put_contents(filename: sprintf("%s/document.pdf", $this->tempUploadsDir), data: 'pdf_content');
+        file_put_contents(sprintf("%s/text.txt", $this->tempUploadsDir), 'text_content');
         
         $this->imageCompressionService
-            ->expects($this->exactly(7)) // Only supported extensions
+            ->expects($this->exactly(7))
             ->method('compressExistingFile')
             ->willReturn('compressed.webp');
         
@@ -237,35 +230,38 @@ class CompressImagesCommandTest extends TestCase
         $this->assertStringContainsString('Found 7 image files to convert', $output);
     }
 
+    /**
+     * @throws ReflectionException
+     */
     public function testFormatBytesMethod(): void
     {
-        $reflection = new \ReflectionClass($this->command);
+        $reflection = new ReflectionClass($this->command);
         $method = $reflection->getMethod('formatBytes');
-        $method->setAccessible(true);
-        
+
         $this->assertEquals('0 B', $method->invokeArgs($this->command, [0]));
         $this->assertEquals('500 B', $method->invokeArgs($this->command, [500]));
         $this->assertEquals('1 KB', $method->invokeArgs($this->command, [1024]));
         $this->assertEquals('1.5 KB', $method->invokeArgs($this->command, [1536]));
         $this->assertEquals('1 MB', $method->invokeArgs($this->command, [1024 * 1024]));
         $this->assertEquals('1 GB', $method->invokeArgs($this->command, [1024 * 1024 * 1024]));
-        $this->assertEquals('1024 GB', $method->invokeArgs($this->command, [1024 * 1024 * 1024 * 1024])); // Actual result for 1TB
+        $this->assertEquals('1024 GB', $method->invokeArgs($this->command, [1024 * 1024 * 1024 * 1024]));
     }
 
+    /**
+     * @throws ReflectionException
+     */
     public function testFormatBytesWithNegativeValues(): void
     {
-        $reflection = new \ReflectionClass($this->command);
+        $reflection = new ReflectionClass($this->command);
         $method = $reflection->getMethod('formatBytes');
-        $method->setAccessible(true);
-        
+
         $this->assertEquals('0 B', $method->invokeArgs($this->command, [-100]));
     }
 
     public function testExecuteWithSubdirectories(): void
     {
-        // Create subdirectories with images
-        mkdir($this->tempUploadsDir . '/subdir1', 0755, true);
-        mkdir($this->tempUploadsDir . '/subdir2', 0755, true);
+        mkdir(sprintf("%s/subdir1", $this->tempUploadsDir), 0755, true);
+        mkdir(sprintf("%s/subdir2", $this->tempUploadsDir), 0755, true);
         
         $testImages = [
             'image1.jpg',
@@ -274,7 +270,7 @@ class CompressImagesCommandTest extends TestCase
         ];
         
         foreach ($testImages as $imagePath) {
-            $fullPath = $this->tempUploadsDir . '/' . $imagePath;
+            $fullPath = sprintf("%s/%s", $this->tempUploadsDir, $imagePath);
             file_put_contents($fullPath, 'test_content');
         }
         
@@ -292,17 +288,16 @@ class CompressImagesCommandTest extends TestCase
 
     public function testExecuteCalculatesSavingsCorrectly(): void
     {
-        // Create test image
-        $testImagePath = $this->tempUploadsDir . '/large_image.jpg';
-        $largeContent = str_repeat('x', 10000); // 10KB
+        $testImagePath = sprintf("%s/large_image.jpg", $this->tempUploadsDir);
+        $largeContent = str_repeat('x', 10000);
         file_put_contents($testImagePath, $largeContent);
         
         $this->imageCompressionService
             ->expects($this->once())
             ->method('compressExistingFile')
             ->willReturnCallback(function () {
-                $compressedPath = $this->tempUploadsDir . '/large_image.webp';
-                $smallContent = str_repeat('x', 5000); // 5KB
+                $compressedPath = sprintf("%s/large_image.webp", $this->tempUploadsDir);
+                $smallContent = str_repeat('x', 5000);
                 file_put_contents($compressedPath, $smallContent);
                 return $compressedPath;
             });
@@ -312,7 +307,7 @@ class CompressImagesCommandTest extends TestCase
         $this->assertEquals(Command::SUCCESS, $this->commandTester->getStatusCode());
         $output = $this->commandTester->getDisplay();
         $this->assertStringContainsString('Space saved:', $output);
-        $this->assertStringContainsString('50%', $output); // 50% savings
+        $this->assertStringContainsString('50%', $output);
     }
 
     private function removeDirectory(string $directory): void
