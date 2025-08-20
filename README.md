@@ -64,7 +64,7 @@ Avant de commencer, assurez-vous d'avoir installé :
 ### 1. Cloner le projet
 
 ```bash
-git clone [URL_DU_REPOSITORY]
+git clone https://github.com/adrien-force/OC-P15-Adrien-Force
 cd 876-p15-inazaoui
 ```
 
