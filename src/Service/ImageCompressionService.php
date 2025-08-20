@@ -2,8 +2,8 @@
 
 namespace App\Service;
 
-use Intervention\Image\ImageManager;
 use Intervention\Image\Drivers\Gd\Driver;
+use Intervention\Image\ImageManager;
 use Intervention\Image\Interfaces\ImageInterface;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 
@@ -25,7 +25,7 @@ class ImageCompressionService
 
         // Convertir le chemin relatif en chemin absolu si nécessaire
         $fullPath = $this->getAbsolutePath($targetPath);
-        
+
         // Créer le répertoire si nécessaire
         $directory = dirname($fullPath);
         if (!is_dir($directory)) {
@@ -39,7 +39,7 @@ class ImageCompressionService
         return $this->getRelativePath($webpPath);
     }
 
-    public function compressExistingFile(string $sourcePath, string $targetPath = null, int $quality = self::DEFAULT_QUALITY): string
+    public function compressExistingFile(string $sourcePath, ?string $targetPath = null, int $quality = self::DEFAULT_QUALITY): string
     {
         if (!file_exists($sourcePath)) {
             throw new \InvalidArgumentException("Source file does not exist: {$sourcePath}");
@@ -47,7 +47,7 @@ class ImageCompressionService
 
         $image = $this->manager->read($sourcePath);
 
-        if ($targetPath === null) {
+        if (null === $targetPath) {
             $webpPath = $this->convertToWebP($sourcePath);
             $this->processImage($image, $webpPath, $quality);
 
@@ -78,7 +78,8 @@ class ImageCompressionService
         $pathInfo = pathinfo($originalPath);
         $dirname = $pathInfo['dirname'] ?? '';
         $filename = $pathInfo['filename'];
-        return $dirname . '/' . $filename . '.webp';
+
+        return $dirname.'/'.$filename.'.webp';
     }
 
     public function getCompressedSize(string $filePath): int
@@ -88,7 +89,8 @@ class ImageCompressionService
         }
 
         $size = filesize($filePath);
-        return $size !== false ? $size : 0;
+
+        return false !== $size ? $size : 0;
     }
 
     private function getAbsolutePath(string $path): string
@@ -97,21 +99,22 @@ class ImageCompressionService
         if (str_starts_with($path, '/')) {
             return $path;
         }
-        
+
         // Sinon, le préfixer avec le répertoire public
         $projectRoot = dirname(__DIR__, 2);
-        return $projectRoot . '/public/' . $path;
+
+        return $projectRoot.'/public/'.$path;
     }
 
     private function getRelativePath(string $absolutePath): string
     {
         $projectRoot = dirname(__DIR__, 2);
-        $publicPath = $projectRoot . '/public/';
-        
+        $publicPath = $projectRoot.'/public/';
+
         if (str_starts_with($absolutePath, $publicPath)) {
             return substr($absolutePath, strlen($publicPath));
         }
-        
+
         return $absolutePath;
     }
 }

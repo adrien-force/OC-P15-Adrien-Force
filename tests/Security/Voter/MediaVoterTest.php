@@ -7,9 +7,6 @@ use App\Entity\User;
 use App\Security\Voter\MediaVoter;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
-use ReflectionClass;
-use ReflectionException;
-use stdClass;
 use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
 use Symfony\Component\Security\Core\Authorization\AccessDecisionManagerInterface;
 
@@ -22,7 +19,7 @@ class MediaVoterTest extends TestCase
     private User $user;
 
     /**
-     * @throws ReflectionException
+     * @throws \ReflectionException
      */
     protected function setUp(): void
     {
@@ -39,35 +36,37 @@ class MediaVoterTest extends TestCase
     }
 
     /**
-     * @throws ReflectionException
+     * @throws \ReflectionException
      */
     private function setEntityId(object $entity, int $id): void
     {
-        $reflection = new ReflectionClass($entity);
+        $reflection = new \ReflectionClass($entity);
         $property = $reflection->getProperty('id');
         $property->setValue($entity, $id);
     }
 
     /**
-     * @throws ReflectionException
+     * @throws \ReflectionException
      */
-    private function callVoteOnAttribute(string $attribute, $subject, TokenInterface $token = null): bool
+    private function callVoteOnAttribute(string $attribute, $subject, ?TokenInterface $token = null): bool
     {
-        $ref = new ReflectionClass($this->voter);
+        $ref = new \ReflectionClass($this->voter);
+
         return $ref->getMethod('voteOnAttribute')->invoke($this->voter, $attribute, $subject, $token ?? $this->token);
     }
 
     /**
-     * @throws ReflectionException
+     * @throws \ReflectionException
      */
     private function callSupports(string $attribute, $subject): bool
     {
-        $ref = new ReflectionClass($this->voter);
+        $ref = new \ReflectionClass($this->voter);
+
         return $ref->getMethod('supports')->invoke($this->voter, $attribute, $subject);
     }
 
     /**
-     * @throws ReflectionException
+     * @throws \ReflectionException
      */
     public function testSupportsReturnsFalseForUnsupportedAttribute(): void
     {
@@ -75,15 +74,15 @@ class MediaVoterTest extends TestCase
     }
 
     /**
-     * @throws ReflectionException
+     * @throws \ReflectionException
      */
     public function testSupportsReturnsFalseForNonMediaSubject(): void
     {
-        $this->assertFalse($this->callSupports(MediaVoter::VIEW, new stdClass()));
+        $this->assertFalse($this->callSupports(MediaVoter::VIEW, new \stdClass()));
     }
 
     /**
-     * @throws ReflectionException
+     * @throws \ReflectionException
      */
     public function testSupportsReturnsTrueForSupportedAttributeAndMedia(): void
     {
@@ -91,7 +90,7 @@ class MediaVoterTest extends TestCase
     }
 
     /**
-     * @throws ReflectionException
+     * @throws \ReflectionException
      */
     public function testVoteOnAttributeReturnsFalseIfUserNotConnected(): void
     {
@@ -102,7 +101,7 @@ class MediaVoterTest extends TestCase
     }
 
     /**
-     * @throws ReflectionException
+     * @throws \ReflectionException
      */
     public function testVoteOnAttributeView(): void
     {
@@ -110,7 +109,7 @@ class MediaVoterTest extends TestCase
     }
 
     /**
-     * @throws ReflectionException
+     * @throws \ReflectionException
      */
     public function testVoteOnAttributeEditAsAdmin(): void
     {
@@ -119,7 +118,7 @@ class MediaVoterTest extends TestCase
     }
 
     /**
-     * @throws ReflectionException
+     * @throws \ReflectionException
      */
     public function testVoteOnAttributeEditAsAuthor(): void
     {
@@ -129,7 +128,7 @@ class MediaVoterTest extends TestCase
     }
 
     /**
-     * @throws ReflectionException
+     * @throws \ReflectionException
      */
     public function testVoteOnAttributeEditAsOther(): void
     {
@@ -141,7 +140,7 @@ class MediaVoterTest extends TestCase
     }
 
     /**
-     * @throws ReflectionException
+     * @throws \ReflectionException
      */
     public function testVoteOnAttributeDeleteAsAdmin(): void
     {
@@ -150,7 +149,7 @@ class MediaVoterTest extends TestCase
     }
 
     /**
-     * @throws ReflectionException
+     * @throws \ReflectionException
      */
     public function testVoteOnAttributeDeleteAsAuthor(): void
     {
@@ -160,7 +159,7 @@ class MediaVoterTest extends TestCase
     }
 
     /**
-     * @throws ReflectionException
+     * @throws \ReflectionException
      */
     public function testVoteOnAttributeDeleteAsOther(): void
     {
@@ -172,7 +171,7 @@ class MediaVoterTest extends TestCase
     }
 
     /**
-     * @throws ReflectionException
+     * @throws \ReflectionException
      */
     public function testVoteOnAttributeAddAsAllowedUser(): void
     {
@@ -181,7 +180,7 @@ class MediaVoterTest extends TestCase
     }
 
     /**
-     * @throws ReflectionException
+     * @throws \ReflectionException
      */
     public function testVoteOnAttributeAddAsNotAllowedUser(): void
     {

@@ -7,9 +7,6 @@ use App\Entity\User;
 use App\Security\Voter\AlbumVoter;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
-use ReflectionClass;
-use ReflectionException;
-use stdClass;
 use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
 use Symfony\Component\Security\Core\Authorization\AccessDecisionManagerInterface;
 
@@ -34,25 +31,27 @@ class AlbumVoterTest extends TestCase
     }
 
     /**
-     * @throws ReflectionException
+     * @throws \ReflectionException
      */
-    private function callVoteOnAttribute(string $attribute, $subject, TokenInterface $token = null): bool
+    private function callVoteOnAttribute(string $attribute, $subject, ?TokenInterface $token = null): bool
     {
-        $ref = new ReflectionClass($this->voter);
+        $ref = new \ReflectionClass($this->voter);
+
         return $ref->getMethod('voteOnAttribute')->invoke($this->voter, $attribute, $subject, $token ?? $this->token);
     }
 
     /**
-     * @throws ReflectionException
+     * @throws \ReflectionException
      */
     private function callSupports(string $attribute, $subject): bool
     {
-        $ref = new ReflectionClass($this->voter);
+        $ref = new \ReflectionClass($this->voter);
+
         return $ref->getMethod('supports')->invoke($this->voter, $attribute, $subject);
     }
 
     /**
-     * @throws ReflectionException
+     * @throws \ReflectionException
      */
     public function testVoteOnAttributeEditAsAdmin(): void
     {
@@ -62,7 +61,7 @@ class AlbumVoterTest extends TestCase
     }
 
     /**
-     * @throws ReflectionException
+     * @throws \ReflectionException
      */
     public function testVoteOnAttributeEditAsNonAdmin(): void
     {
@@ -72,7 +71,7 @@ class AlbumVoterTest extends TestCase
     }
 
     /**
-     * @throws ReflectionException
+     * @throws \ReflectionException
      */
     public function testSupportsReturnsFalseForUnsupportedAttribute(): void
     {
@@ -80,15 +79,15 @@ class AlbumVoterTest extends TestCase
     }
 
     /**
-     * @throws ReflectionException
+     * @throws \ReflectionException
      */
     public function testSupportsReturnsFalseForNonAlbumSubject(): void
     {
-        $this->assertFalse($this->callSupports(AlbumVoter::VIEW, new stdClass()));
+        $this->assertFalse($this->callSupports(AlbumVoter::VIEW, new \stdClass()));
     }
 
     /**
-     * @throws ReflectionException
+     * @throws \ReflectionException
      */
     public function testSupportsReturnsTrueForSupportedAttributeAndAlbum(): void
     {
@@ -96,7 +95,7 @@ class AlbumVoterTest extends TestCase
     }
 
     /**
-     * @throws ReflectionException
+     * @throws \ReflectionException
      */
     public function testVoteOnAttributeReturnsFalseIfUserNotConnected(): void
     {
@@ -107,7 +106,7 @@ class AlbumVoterTest extends TestCase
     }
 
     /**
-     * @throws ReflectionException
+     * @throws \ReflectionException
      */
     public function testVoteOnAttributeView(): void
     {
@@ -115,7 +114,7 @@ class AlbumVoterTest extends TestCase
     }
 
     /**
-     * @throws ReflectionException
+     * @throws \ReflectionException
      */
     public function testVoteOnAttributeDeleteAsAdmin(): void
     {
@@ -125,7 +124,7 @@ class AlbumVoterTest extends TestCase
     }
 
     /**
-     * @throws ReflectionException
+     * @throws \ReflectionException
      */
     public function testVoteOnAttributeDeleteAsNonAdmin(): void
     {

@@ -21,7 +21,6 @@ use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\HttpKernel\DataCollector\TimeDataCollector;
 use Symfony\Component\HttpKernel\Profiler\Profiler;
 
-
 class ProfilerReportingCommand extends Command
 {
     /**
@@ -106,6 +105,7 @@ class ProfilerReportingCommand extends Command
 
         if (!$tokens) {
             $io->warning('No tokens found for the given route pattern: '.$route);
+
             return null;
         }
 
@@ -304,7 +304,7 @@ class ProfilerReportingCommand extends Command
     }
 
     /**
-     * @param string[]                     $headers
+     * @param string[]                      $headers
      * @param array<int, array<int, mixed>> $rows
      */
     private function displayTable(SymfonyStyle $io, int $n, string $route, array $headers, array $rows): void
@@ -314,7 +314,7 @@ class ProfilerReportingCommand extends Command
     }
 
     /**
-     * @param string[]                     $headers
+     * @param string[]                      $headers
      * @param array<int, array<int, mixed>> $rows
      */
     private function generateCsv(string $csvPath, string $route, array $headers, array $rows, SymfonyStyle $io): void
@@ -474,8 +474,6 @@ class ProfilerReportingCommand extends Command
 
         return substr($safeName, 0, 31);
     }
-
-
 
     private function formatNumericColumns(Worksheet $sheet): void
     {

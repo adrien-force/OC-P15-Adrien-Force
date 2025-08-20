@@ -17,6 +17,7 @@ class GuestControllerTest extends WebTestCase
     private EntityManagerInterface $em;
     private User $adminUser;
     private User $baseUser;
+
     protected function setUp(): void
     {
         parent::setUp();
@@ -32,8 +33,9 @@ class GuestControllerTest extends WebTestCase
 
     private function getTestClient(): KernelBrowser
     {
-        $client =  static::getClient();
+        $client = static::getClient();
         assert($client instanceof KernelBrowser);
+
         return $client;
     }
 
@@ -78,7 +80,7 @@ class GuestControllerTest extends WebTestCase
 
         $nonGuestUser = $nonGuestUsers[1];
 
-        $client->request('GET', '/admin/guest/add-role/' . $nonGuestUser->getId());
+        $client->request('GET', '/admin/guest/add-role/'.$nonGuestUser->getId());
 
         self::assertResponseRedirects('/admin/guest/manage');
 
@@ -103,7 +105,7 @@ class GuestControllerTest extends WebTestCase
 
         $guestUser = $guestUsers[1];
 
-        $crawler = $client->request('GET', '/admin/guest/update/' . $guestUser->getId());
+        $crawler = $client->request('GET', '/admin/guest/update/'.$guestUser->getId());
 
         self::assertResponseIsSuccessful();
 
@@ -143,7 +145,7 @@ class GuestControllerTest extends WebTestCase
 
         $guestUser = $nonGuestUsers[0];
 
-        $client->request('GET', '/admin/guest/update/' . $guestUser->getId());
+        $client->request('GET', '/admin/guest/update/'.$guestUser->getId());
 
         self::assertResponseStatusCodeSame(302);
         self::assertResponseRedirects('/admin/guest/manage');
@@ -163,7 +165,7 @@ class GuestControllerTest extends WebTestCase
 
         $guestUser = $guestUsers[1];
 
-        $client->request('GET', '/admin/guest/remove-role/' . $guestUser->getId());
+        $client->request('GET', '/admin/guest/remove-role/'.$guestUser->getId());
 
         self::assertResponseRedirects('/admin/guest');
 
@@ -223,7 +225,7 @@ class GuestControllerTest extends WebTestCase
 
         $userId = $guestUser->getId();
 
-        $client->request('GET', '/admin/guest/delete/' . $userId);
+        $client->request('GET', '/admin/guest/delete/'.$userId);
 
         self::assertResponseRedirects('/admin/guest');
         $client->followRedirect();
@@ -258,7 +260,7 @@ class GuestControllerTest extends WebTestCase
 
         $this->assertTrue($guestUser->isGuest());
 
-        $client->request('GET', '/admin/guest/delete/' . $userId);
+        $client->request('GET', '/admin/guest/delete/'.$userId);
 
         self::assertResponseRedirects('/admin/guest');
         $client->followRedirect();
@@ -278,7 +280,7 @@ class GuestControllerTest extends WebTestCase
 
         $this->assertFalse($nonGuestUser->isGuest());
 
-        $client->request('GET', '/admin/guest/delete/' . $userId);
+        $client->request('GET', '/admin/guest/delete/'.$userId);
 
         self::assertResponseRedirects('/admin/guest');
         $client->followRedirect();

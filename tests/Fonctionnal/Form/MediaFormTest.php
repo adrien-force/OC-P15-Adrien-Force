@@ -4,18 +4,15 @@ namespace Fonctionnal\Form;
 
 use App\Entity\User;
 use App\Repository\UserRepository;
-use Generator;
 use Symfony\Bundle\FrameworkBundle\KernelBrowser;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 use Symfony\Component\DomCrawler\Field\FileFormField;
 
 class MediaFormTest extends WebTestCase
 {
-
     private User $adminUser;
 
-
-    public function provideUncorrectMediaFiles(): Generator
+    public function provideUncorrectMediaFiles(): \Generator
     {
         yield ['image.gif' => 'image.gif'];
         yield ['image.svg' => 'image.svg'];
@@ -35,8 +32,9 @@ class MediaFormTest extends WebTestCase
 
     private function getTestClient(): KernelBrowser
     {
-        $client =  static::getClient();
+        $client = static::getClient();
         assert($client instanceof KernelBrowser);
+
         return $client;
     }
 
@@ -45,7 +43,6 @@ class MediaFormTest extends WebTestCase
         $client = $this->getTestClient();
 
         $client->loginUser($this->adminUser);
-
 
         $crawler = $client->request('GET', '/admin/media/add');
 
@@ -92,7 +89,7 @@ class MediaFormTest extends WebTestCase
 
         /** @var FileFormField $fileField */
         $fileField = $form['media[file]'];
-        $fileField->upload(__DIR__.'/MediaContent/' . $media);
+        $fileField->upload(__DIR__.'/MediaContent/'.$media);
         $form['media[title]'] = 'Test Image';
 
         $client->submit($form);

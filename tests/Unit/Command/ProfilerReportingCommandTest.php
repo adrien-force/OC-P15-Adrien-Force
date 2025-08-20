@@ -3,16 +3,14 @@
 namespace Unit\Command;
 
 use App\Command\ProfilerReportingCommand;
+use Doctrine\Bundle\DoctrineBundle\DataCollector\DoctrineDataCollector;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
-use ReflectionClass;
-use ReflectionException;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Tester\CommandTester;
-use Symfony\Component\HttpKernel\Profiler\Profiler;
-use Symfony\Component\HttpKernel\Profiler\Profile;
 use Symfony\Component\HttpKernel\DataCollector\TimeDataCollector;
-use Doctrine\Bundle\DoctrineBundle\DataCollector\DoctrineDataCollector;
+use Symfony\Component\HttpKernel\Profiler\Profile;
+use Symfony\Component\HttpKernel\Profiler\Profiler;
 
 class ProfilerReportingCommandTest extends TestCase
 {
@@ -35,7 +33,7 @@ class ProfilerReportingCommandTest extends TestCase
     public function testCommandConfiguration(): void
     {
         $definition = $this->command->getDefinition();
-        
+
         $this->assertTrue($definition->hasOption('n'));
         $this->assertTrue($definition->hasOption('s'));
         $this->assertTrue($definition->hasOption('run-test'));
@@ -48,7 +46,7 @@ class ProfilerReportingCommandTest extends TestCase
     public function testExecuteWithInvalidTokenNumber(): void
     {
         $this->commandTester->execute([
-            '--n' => '0'
+            '--n' => '0',
         ]);
 
         $this->assertEquals(1, $this->commandTester->getStatusCode());
@@ -62,7 +60,7 @@ class ProfilerReportingCommandTest extends TestCase
             ->willReturn([]);
 
         $this->commandTester->execute([
-            '--n' => '5'
+            '--n' => '5',
         ]);
 
         $this->assertEquals(0, $this->commandTester->getStatusCode());
@@ -78,15 +76,15 @@ class ProfilerReportingCommandTest extends TestCase
                 'ip' => '127.0.0.1',
                 'method' => 'GET',
                 'url' => '/test',
-            ]
+            ],
         ];
 
         $mockProfile = $this->createMock(Profile::class);
         $mockProfile->method('hasCollector')->willReturn(true);
-        
+
         $timeCollector = $this->createMock(TimeDataCollector::class);
         $timeCollector->method('getDuration')->willReturn(150.5);
-        
+
         $dbCollector = $this->createMock(DoctrineDataCollector::class);
         $dbCollector->method('getTime')->willReturn(0.025);
         $dbCollector->method('getQueryCount')->willReturn(3);
@@ -107,7 +105,7 @@ class ProfilerReportingCommandTest extends TestCase
             ->willReturn($mockProfile);
 
         $this->commandTester->execute([
-            '--n' => '1'
+            '--n' => '1',
         ]);
 
         $this->assertEquals(0, $this->commandTester->getStatusCode());
@@ -116,7 +114,7 @@ class ProfilerReportingCommandTest extends TestCase
     }
 
     /**
-     * @throws ReflectionException
+     * @throws \ReflectionException
      */
     public function testGetBenchmarkOptionsMethod(): void
     {
@@ -129,7 +127,7 @@ class ProfilerReportingCommandTest extends TestCase
             ['base-url', 'http://localhost:8080'],
         ]);
 
-        $reflection = new ReflectionClass($this->command);
+        $reflection = new \ReflectionClass($this->command);
         $method = $reflection->getMethod('getBenchmarkOptions');
 
         $result = $method->invoke($this->command, $input);
@@ -143,7 +141,7 @@ class ProfilerReportingCommandTest extends TestCase
     }
 
     /**
-     * @throws ReflectionException
+     * @throws \ReflectionException
      */
     public function testGetBenchmarkOptionsWithDefaults(): void
     {
@@ -156,7 +154,7 @@ class ProfilerReportingCommandTest extends TestCase
             ['base-url', null],
         ]);
 
-        $reflection = new ReflectionClass($this->command);
+        $reflection = new \ReflectionClass($this->command);
         $method = $reflection->getMethod('getBenchmarkOptions');
 
         $result = $method->invoke($this->command, $input);
@@ -169,17 +167,17 @@ class ProfilerReportingCommandTest extends TestCase
     }
 
     /**
-     * @throws ReflectionException
+     * @throws \ReflectionException
      */
     public function testBuildAbCommand(): void
     {
         $options = [
             'requests' => 10,
             'concurrency' => 2,
-            'cookie' => 'PHPSESSID=test123'
+            'cookie' => 'PHPSESSID=test123',
         ];
 
-        $reflection = new ReflectionClass($this->command);
+        $reflection = new \ReflectionClass($this->command);
         $method = $reflection->getMethod('buildAbCommand');
 
         $result = $method->invoke($this->command, 'https://example.com/test', $options);
@@ -190,17 +188,17 @@ class ProfilerReportingCommandTest extends TestCase
     }
 
     /**
-     * @throws ReflectionException
+     * @throws \ReflectionException
      */
     public function testBuildAbCommandWithoutCookie(): void
     {
         $options = [
             'requests' => 5,
             'concurrency' => 1,
-            'cookie' => ''
+            'cookie' => '',
         ];
 
-        $reflection = new ReflectionClass($this->command);
+        $reflection = new \ReflectionClass($this->command);
         $method = $reflection->getMethod('buildAbCommand');
 
         $result = $method->invoke($this->command, 'https://example.com/test', $options);
@@ -211,11 +209,11 @@ class ProfilerReportingCommandTest extends TestCase
     }
 
     /**
-     * @throws ReflectionException
+     * @throws \ReflectionException
      */
     public function testGenerateCsvPath(): void
     {
-        $reflection = new ReflectionClass($this->command);
+        $reflection = new \ReflectionClass($this->command);
         $method = $reflection->getMethod('generateCsvPath');
 
         $result = $method->invoke($this->command, '/admin/media', 10, 5);
@@ -229,11 +227,11 @@ class ProfilerReportingCommandTest extends TestCase
     }
 
     /**
-     * @throws ReflectionException
+     * @throws \ReflectionException
      */
     public function testGetSafeSheetName(): void
     {
-        $reflection = new ReflectionClass($this->command);
+        $reflection = new \ReflectionClass($this->command);
         $method = $reflection->getMethod('getSafeSheetName');
 
         $result = $method->invoke($this->command, '/admin/media');
@@ -248,11 +246,11 @@ class ProfilerReportingCommandTest extends TestCase
     }
 
     /**
-     * @throws ReflectionException
+     * @throws \ReflectionException
      */
     public function testCalculateAverage(): void
     {
-        $reflection = new ReflectionClass($this->command);
+        $reflection = new \ReflectionClass($this->command);
         $method = $reflection->getMethod('calculateAverage');
 
         $result = $method->invoke($this->command, [10.0, 20.0, 30.0]);
@@ -266,11 +264,11 @@ class ProfilerReportingCommandTest extends TestCase
     }
 
     /**
-     * @throws ReflectionException
+     * @throws \ReflectionException
      */
     public function testCalculateStandardDeviation(): void
     {
-        $reflection = new ReflectionClass($this->command);
+        $reflection = new \ReflectionClass($this->command);
         $method = $reflection->getMethod('calculateStandardDeviation');
 
         $result = $method->invoke($this->command, [10.0, 20.0, 30.0]);
@@ -288,7 +286,7 @@ class ProfilerReportingCommandTest extends TestCase
     }
 
     /**
-     * @throws ReflectionException
+     * @throws \ReflectionException
      */
     public function testCollectProfilerDataWithNoProfile(): void
     {
@@ -299,14 +297,14 @@ class ProfilerReportingCommandTest extends TestCase
                 'ip' => '192.168.1.1',
                 'method' => 'POST',
                 'url' => '/submit',
-            ]
+            ],
         ];
 
         $this->profiler->method('loadProfile')
             ->with('invalid-token')
             ->willReturn(null);
 
-        $reflection = new ReflectionClass($this->command);
+        $reflection = new \ReflectionClass($this->command);
         $method = $reflection->getMethod('collectProfilerData');
 
         $result = $method->invoke($this->command, $tokens);
@@ -322,7 +320,7 @@ class ProfilerReportingCommandTest extends TestCase
     }
 
     /**
-     * @throws ReflectionException
+     * @throws \ReflectionException
      */
     public function testCollectProfilerDataWithCollectors(): void
     {
@@ -333,7 +331,7 @@ class ProfilerReportingCommandTest extends TestCase
                 'ip' => '127.0.0.1',
                 'method' => 'GET',
                 'url' => '/api/test',
-            ]
+            ],
         ];
 
         $mockProfile = $this->createMock(Profile::class);
@@ -341,10 +339,10 @@ class ProfilerReportingCommandTest extends TestCase
             ['db', true],
             ['time', true],
         ]);
-        
+
         $timeCollector = $this->createMock(TimeDataCollector::class);
         $timeCollector->method('getDuration')->willReturn(250.75);
-        
+
         $dbCollector = $this->createMock(DoctrineDataCollector::class);
         $dbCollector->method('getTime')->willReturn(0.055); // 55ms
         $dbCollector->method('getQueryCount')->willReturn(7);
@@ -359,7 +357,7 @@ class ProfilerReportingCommandTest extends TestCase
             ->with('valid-token')
             ->willReturn($mockProfile);
 
-        $reflection = new ReflectionClass($this->command);
+        $reflection = new \ReflectionClass($this->command);
         $method = $reflection->getMethod('collectProfilerData');
 
         $result = $method->invoke($this->command, $tokens);
@@ -378,11 +376,11 @@ class ProfilerReportingCommandTest extends TestCase
     }
 
     /**
-     * @throws ReflectionException
+     * @throws \ReflectionException
      */
     public function testGetHeaders(): void
     {
-        $reflection = new ReflectionClass($this->command);
+        $reflection = new \ReflectionClass($this->command);
         $method = $reflection->getMethod('getHeaders');
 
         $result = $method->invoke($this->command);
@@ -405,14 +403,14 @@ class ProfilerReportingCommandTest extends TestCase
     protected function tearDown(): void
     {
         parent::tearDown();
-        
+
         $csvFiles = glob('var/log/profiler_*.csv');
         foreach ($csvFiles as $file) {
             if (file_exists($file)) {
                 unlink($file);
             }
         }
-        
+
         $xlsxFiles = glob('var/log/profiler_global_report_*.xlsx');
         foreach ($xlsxFiles as $file) {
             if (file_exists($file)) {

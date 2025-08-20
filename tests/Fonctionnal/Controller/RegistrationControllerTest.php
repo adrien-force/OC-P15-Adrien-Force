@@ -15,7 +15,7 @@ class RegistrationControllerTest extends WebTestCase
             'registration[name]' => 'testuser',
             'registration[email]' => 'testemailuser@test.com',
             'registration[password][first]' => 'zklsjdqlzkjdlkqzjdkqzndjkqzhjdbqzhjd8378373££**¨¨',
-            'registration[password][second]' => 'zklsjdqlzkjdlkqzjdkqzndjkqzhjdbqzhjd8378373££**¨¨'
+            'registration[password][second]' => 'zklsjdqlzkjdlkqzjdkqzndjkqzhjdbqzhjd8378373££**¨¨',
         ]);
         $client->submit($form);
         self::assertResponseRedirects('/login');

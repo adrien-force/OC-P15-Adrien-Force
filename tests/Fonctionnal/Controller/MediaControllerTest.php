@@ -13,7 +13,6 @@ use Symfony\Component\HttpFoundation\File\UploadedFile;
 
 class MediaControllerTest extends WebTestCase
 {
-
     private MediaRepository $mediaRepository;
     private User $adminUser;
     private User $baseUser;
@@ -26,7 +25,7 @@ class MediaControllerTest extends WebTestCase
 
         static::createClient();
 
-        $uploadsDir = __DIR__ . '/../../../public/uploads';
+        $uploadsDir = __DIR__.'/../../../public/uploads';
         if (!is_dir($uploadsDir)) {
             mkdir($uploadsDir, 0755, true);
         }
@@ -44,10 +43,12 @@ class MediaControllerTest extends WebTestCase
 
     private function getTestClient(): KernelBrowser
     {
-        $client =  static::getClient();
+        $client = static::getClient();
         assert($client instanceof KernelBrowser);
+
         return $client;
     }
+
     public function testIndex(): void
     {
         $client = $this->getTestClient();
@@ -88,7 +89,6 @@ class MediaControllerTest extends WebTestCase
         }
         self::assertResponseIsSuccessful();
 
-
         $image = $this->mediaRepository->findOneBy(['title' => 'Test Image']);
         self::assertNotNull($image);
         self::assertNotNull($image->getUser());
@@ -121,7 +121,6 @@ class MediaControllerTest extends WebTestCase
             $client->followRedirect();
         }
         self::assertResponseIsSuccessful();
-
 
         $image = $this->mediaRepository->findOneBy(['title' => 'Test Image']);
         self::assertNotNull($image);
@@ -156,30 +155,27 @@ class MediaControllerTest extends WebTestCase
             $client->followRedirect();
         }
 
-
-
         $media = $this->mediaRepository->findOneBy(['title' => 'Test Image 2']);
 
         self::assertNotNull($media);
         self::assertNotNull($media->getUser());
 
         $client->request('GET', '/admin/media/delete/'.$media->getId());
-        
+
         if ($client->getResponse()->isRedirection()) {
             $client->followRedirect();
         }
         self::assertResponseIsSuccessful();
     }
 
-
     public function testDeleteMediaWithFileExists(): void
     {
         $client = $this->getTestClient();
         $client->loginUser($this->adminUser);
 
-        $uploadsDir = __DIR__ . '/../../../public/uploads';
-        $testFile = $uploadsDir . '/test_file_to_delete.jpg';
-        
+        $uploadsDir = __DIR__.'/../../../public/uploads';
+        $testFile = $uploadsDir.'/test_file_to_delete.jpg';
+
         copy(__DIR__.'/MediaContent/img.jpg', $testFile);
         self::assertFileExists($testFile);
 
@@ -190,7 +186,7 @@ class MediaControllerTest extends WebTestCase
             $em->flush();
 
             $client->request('GET', '/admin/media/delete/'.$media->getId());
-            
+
             if ($client->getResponse()->isRedirection()) {
                 $client->followRedirect();
                 self::assertResponseIsSuccessful();
@@ -199,5 +195,4 @@ class MediaControllerTest extends WebTestCase
             self::assertFileDoesNotExist($testFile);
         }
     }
-
 }

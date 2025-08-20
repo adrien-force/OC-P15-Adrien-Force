@@ -69,12 +69,12 @@ class MediaController extends AbstractController
             }
 
             $file = $media->getFile();
-            if ($file === null) {
+            if (null === $file) {
                 throw new \InvalidArgumentException('File is required');
             }
 
             $extension = $file->guessExtension();
-            if ($extension === null) {
+            if (null === $extension) {
                 throw new \InvalidArgumentException('Could not determine file extension');
             }
 
@@ -99,12 +99,12 @@ class MediaController extends AbstractController
         $filePath = $media->getPath();
         if (!str_starts_with($filePath, '/')) {
             $projectRoot = dirname(__DIR__, 2);
-            $filePath = $projectRoot . '/public/' . $filePath;
+            $filePath = $projectRoot.'/public/'.$filePath;
         }
 
         $this->em->remove($media);
         $this->em->flush();
-        
+
         // Supprimer le fichier s'il existe
         if (file_exists($filePath)) {
             unlink($filePath);

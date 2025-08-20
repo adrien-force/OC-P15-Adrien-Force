@@ -115,11 +115,11 @@ class UserRepository extends ServiceEntityRepository implements PasswordUpgrader
     /**
      * Finds user with pagination and search capabilities.
      *
-     * @param array<string, mixed> $criteria Filtering criteria
-     * @param array<string, string>    $orderBy  Order options
-     * @param int                  $limit    Max results
-     * @param int                  $offset   Result offset
-     * @param string|null          $search   Search term for name or email
+     * @param array<string, mixed>  $criteria Filtering criteria
+     * @param array<string, string> $orderBy  Order options
+     * @param int                   $limit    Max results
+     * @param int                   $offset   Result offset
+     * @param string|null           $search   Search term for name or email
      *
      * @return User[] Returns an array of User objects
      */
@@ -190,11 +190,11 @@ class UserRepository extends ServiceEntityRepository implements PasswordUpgrader
     /**
      * Finds non-guest users with pagination and search capabilities.
      *
-     * @param array<string, mixed> $criteria Filtering criteria
-     * @param array<string, string>    $orderBy  Order options
-     * @param int                  $limit    Max results
-     * @param int                  $offset   Result offset
-     * @param string|null          $search   Search term for name or email
+     * @param array<string, mixed>  $criteria Filtering criteria
+     * @param array<string, string> $orderBy  Order options
+     * @param int                   $limit    Max results
+     * @param int                   $offset   Result offset
+     * @param string|null           $search   Search term for name or email
      *
      * @return User[] Returns an array of User objects
      */

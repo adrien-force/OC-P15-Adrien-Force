@@ -23,7 +23,7 @@ class CompressImagesCommand extends Command
     public function __construct(
         private readonly ImageCompressionService $imageCompressionService,
         #[Autowire('%kernel.project_dir%')]
-        private readonly string $projectDir
+        private readonly string $projectDir,
     ) {
         parent::__construct();
     }
@@ -45,25 +45,28 @@ class CompressImagesCommand extends Command
 
         if ($quality < 1 || $quality > 100) {
             $io->error('Quality must be between 1 and 100');
+
             return Command::FAILURE;
         }
 
-        $uploadsDir = $this->projectDir . '/public/uploads';
+        $uploadsDir = $this->projectDir.'/public/uploads';
         if (!is_dir($uploadsDir)) {
             $io->error("Uploads directory not found: {$uploadsDir}");
+
             return Command::FAILURE;
         }
 
         $finder = new Finder();
         $finder->files()
             ->in($uploadsDir)
-            ->name('/\.(' . implode('|', self::SUPPORTED_EXTENSIONS) . ')$/i');
+            ->name('/\.('.implode('|', self::SUPPORTED_EXTENSIONS).')$/i');
 
         $files = iterator_to_array($finder);
         $totalFiles = count($files);
 
-        if ($totalFiles === 0) {
+        if (0 === $totalFiles) {
             $io->info('No supported image files found in uploads directory');
+
             return Command::SUCCESS;
         }
 
@@ -92,9 +95,9 @@ class CompressImagesCommand extends Command
                     $newPath = $this->imageCompressionService->compressExistingFile($filePath, null, $quality);
                     $sizeAfter = file_exists($newPath) ? filesize($newPath) : 0;
                     $totalSizeAfter += $sizeAfter;
-                    $processedCount++;
+                    ++$processedCount;
                 } catch (\Exception $e) {
-                    $io->error("Failed to compress {$file->getFilename()}: " . $e->getMessage());
+                    $io->error("Failed to compress {$file->getFilename()}: ".$e->getMessage());
                     $totalSizeAfter += $sizeBefore;
                     continue;
                 }
@@ -114,15 +117,15 @@ class CompressImagesCommand extends Command
 
             $io->success([
                 "Successfully converted {$processedCount} images to WebP!",
-                "Total size before: " . $this->formatBytes($totalSizeBefore),
-                "Total size after: " . $this->formatBytes($totalSizeAfter),
-                "Space saved: " . $this->formatBytes($savings) . " (" . round($savingsPercent, 2) . "%)",
+                'Total size before: '.$this->formatBytes($totalSizeBefore),
+                'Total size after: '.$this->formatBytes($totalSizeAfter),
+                'Space saved: '.$this->formatBytes($savings).' ('.round($savingsPercent, 2).'%)',
             ]);
         } else {
             $io->info([
                 "Would convert {$totalFiles} files to WebP",
-                "Total size: " . $this->formatBytes($totalSizeBefore),
-                "Run without --dry-run to actually convert the images",
+                'Total size: '.$this->formatBytes($totalSizeBefore),
+                'Run without --dry-run to actually convert the images',
             ]);
         }
 
@@ -138,6 +141,6 @@ class CompressImagesCommand extends Command
 
         $bytes /= (1024 ** $pow);
 
-        return round($bytes, 2) . ' ' . $units[$pow];
+        return round($bytes, 2).' '.$units[$pow];
     }
 }

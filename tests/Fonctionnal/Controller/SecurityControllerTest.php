@@ -8,7 +8,6 @@ use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 
 class SecurityControllerTest extends WebTestCase
 {
-
     private UserRepository $userRepository;
 
     protected function setUp(): void
@@ -20,8 +19,9 @@ class SecurityControllerTest extends WebTestCase
 
     private function getTestClient(): KernelBrowser
     {
-        $client =  static::getClient();
+        $client = static::getClient();
         assert($client instanceof KernelBrowser);
+
         return $client;
     }
 
@@ -44,7 +44,7 @@ class SecurityControllerTest extends WebTestCase
             'registration[name]' => 'testuser98989',
             'registration[email]' => 'testemailuser@test.com',
             'registration[password][first]' => 'zklsjdqlzkjdlkqzjdkqzndjkqzhjdbqzhjd8378373££**¨¨',
-            'registration[password][second]' => 'zklsjdqlzkjdlkqzjdkqzndjkqzhjdbqzhjd8378373££**¨¨'
+            'registration[password][second]' => 'zklsjdqlzkjdlkqzjdkqzndjkqzhjdbqzhjd8378373££**¨¨',
         ]);
         $client->submit($form);
         self::assertResponseRedirects('/login');
@@ -54,7 +54,7 @@ class SecurityControllerTest extends WebTestCase
 
         $form = $crawler->selectButton('Connexion')->form([
             '_username' => 'testemailuser@test.com',
-            '_password' => 'zklsjdqlzkjdlkqzjdkqzndjkqzhjdbqzhjd8378373££**¨¨'
+            '_password' => 'zklsjdqlzkjdlkqzjdkqzndjkqzhjdbqzhjd8378373££**¨¨',
         ]);
         $client->submit($form);
         self::assertResponseRedirects();

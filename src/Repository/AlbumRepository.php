@@ -24,6 +24,7 @@ class AlbumRepository extends ServiceEntityRepository
     /**
      * @param array<string, string> $criteria
      * @param array<string, string> $orderBy
+     *
      * @return Album[]
      */
     public function findAllPaginated(array $criteria = [], array $orderBy = ['id' => 'ASC'], int $limit = 10, int $offset = 0): array

@@ -8,7 +8,7 @@ class MediaControllerTest extends TestCase
 {
     public function testDeleteLogicWithFileExists(): void
     {
-        $testFile = sys_get_temp_dir() . '/test_media_delete.jpg';
+        $testFile = sys_get_temp_dir().'/test_media_delete.jpg';
         file_put_contents($testFile, 'test content');
         $this->assertFileExists($testFile);
 
@@ -21,13 +21,13 @@ class MediaControllerTest extends TestCase
 
     public function testDeleteLogicWithNonExistentFile(): void
     {
-        $nonExistentFile = sys_get_temp_dir() . '/non_existent_file.jpg';
+        $nonExistentFile = sys_get_temp_dir().'/non_existent_file.jpg';
         $this->assertFileDoesNotExist($nonExistentFile);
 
         if (file_exists($nonExistentFile)) {
             unlink($nonExistentFile);
         }
-        
+
         $this->assertFileDoesNotExist($nonExistentFile);
     }
 }

@@ -30,7 +30,7 @@ class AlbumTypeTest extends WebTestCase
     public function testThatAlbumUpdateFormRendersCorrectly(): void
     {
         $client = static::getClient();
-        $crawler = $client->request('GET', '/admin/album/update/' . $this->album->getId());
+        $crawler = $client->request('GET', '/admin/album/update/'.$this->album->getId());
 
         self::assertResponseIsSuccessful();
         $this->assertCount(1, $crawler->filter('form[name="album"]'));
@@ -40,7 +40,7 @@ class AlbumTypeTest extends WebTestCase
     public function testSubmittingValidData(): void
     {
         $client = static::getClient();
-        $crawler = $client->request('GET', '/admin/album/update/' . $this->album->getId());
+        $crawler = $client->request('GET', '/admin/album/update/'.$this->album->getId());
 
         $form = $crawler->selectButton('Modifier')->form();
         $newName = 'Updated Album Name';
@@ -53,13 +53,12 @@ class AlbumTypeTest extends WebTestCase
 
         $updatedAlbum = $this->albumRepository->findBy(['id' => $this->album->getId()])[0];
         self::assertSame($newName, $updatedAlbum->getName());
-
     }
 
     public function testSubmittingInvalidData(): void
     {
         $client = static::getClient();
-        $crawler = $client->request('GET', '/admin/album/update/' . $this->album->getId());
+        $crawler = $client->request('GET', '/admin/album/update/'.$this->album->getId());
 
         $form = $crawler->selectButton('Modifier')->form();
         $form['album[name]'] = '';
@@ -70,4 +69,3 @@ class AlbumTypeTest extends WebTestCase
         self::assertSelectorTextContains('.invalid-feedback', 'Cette valeur ne doit pas être vide.');
     }
 }
-

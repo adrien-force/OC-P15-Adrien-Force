@@ -134,6 +134,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         if (empty($this->email)) {
             throw new \LogicException('User email cannot be empty');
         }
+
         return $this->email;
     }
 

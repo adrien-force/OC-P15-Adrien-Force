@@ -27,7 +27,7 @@ class GuestFormTest extends WebTestCase
     public function testThatGuestUpdateFormRendersCorrectly(): void
     {
         $client = static::getClient();
-        $crawler = $client->request('GET', '/admin/guest/update/' . $this->guestUser->getId());
+        $crawler = $client->request('GET', '/admin/guest/update/'.$this->guestUser->getId());
 
         self::assertResponseIsSuccessful();
         $this->assertCount(1, $crawler->filter('form[name="guest"]'));
@@ -39,7 +39,7 @@ class GuestFormTest extends WebTestCase
     public function testSubmittingValidData(): void
     {
         $client = static::getClient();
-        $crawler = $client->request('GET', '/admin/guest/update/' . $this->guestUser->getId());
+        $crawler = $client->request('GET', '/admin/guest/update/'.$this->guestUser->getId());
 
         $form = $crawler->selectButton('Modifier')->form();
         $newName = 'Updated Guest Name';
@@ -48,14 +48,14 @@ class GuestFormTest extends WebTestCase
         $client->submit($form);
 
         self::assertResponseRedirects('/admin/guest');
-        $updatedUser =$this->userRepository->findBy(['id' => $this->guestUser->getId()])[0];
+        $updatedUser = $this->userRepository->findBy(['id' => $this->guestUser->getId()])[0];
         self::assertSame($newName, $updatedUser->getName());
     }
 
     public function testSubmittingInvalidData(): void
     {
         $client = static::getClient();
-        $crawler = $client->request('GET', '/admin/guest/update/' . $this->guestUser->getId());
+        $crawler = $client->request('GET', '/admin/guest/update/'.$this->guestUser->getId());
 
         $form = $crawler->selectButton('Modifier')->form();
         $form['guest[email]'] = 'blabla';

@@ -11,6 +11,7 @@ class HomeControllerTest extends WebTestCase
 {
     private UserRepository $userRepository;
     private AlbumRepository $albumRepository;
+
     public function setUp(): void
     {
         parent::setUp();
@@ -21,8 +22,9 @@ class HomeControllerTest extends WebTestCase
 
     private function getTestClient(): KernelBrowser
     {
-        $client =  static::getClient();
+        $client = static::getClient();
         assert($client instanceof KernelBrowser);
+
         return $client;
     }
 
@@ -45,7 +47,7 @@ class HomeControllerTest extends WebTestCase
         $client = $this->getTestClient();
         $guest = $this->userRepository->findAllGuestUsers()[0] ?? null;
         if ($guest) {
-            $client->request('GET', '/guest/' . $guest->getId());
+            $client->request('GET', '/guest/'.$guest->getId());
             self::assertResponseIsSuccessful();
         } else {
             self::markTestSkipped('No guest user found.');
@@ -60,7 +62,7 @@ class HomeControllerTest extends WebTestCase
 
         $album = $this->albumRepository->findOneBy([]);
         if ($album) {
-            $client->request('GET', '/portfolio/' . $album->getId());
+            $client->request('GET', '/portfolio/'.$album->getId());
             self::assertResponseIsSuccessful();
         } else {
             self::markTestSkipped('No album found.');
@@ -73,5 +75,4 @@ class HomeControllerTest extends WebTestCase
         $client->request('GET', '/about');
         self::assertResponseIsSuccessful();
     }
-
 }
