@@ -307,16 +307,6 @@ class ProfilerReportingCommand extends Command
      * @param string[]                      $headers
      * @param array<int, array<int, mixed>> $rows
      */
-    private function displayTable(SymfonyStyle $io, int $n, string $route, array $headers, array $rows): void
-    {
-        $io->section(sprintf('Latest %d tokens for route pattern "%s":', $n, $route));
-        $io->table($headers, $rows);
-    }
-
-    /**
-     * @param string[]                      $headers
-     * @param array<int, array<int, mixed>> $rows
-     */
     private function generateCsv(string $csvPath, string $route, array $headers, array $rows, SymfonyStyle $io): void
     {
         $fp = fopen($csvPath, 'wb');
