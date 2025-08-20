@@ -291,36 +291,117 @@ make db
 
 ## 🚀 Déploiement
 
-### Préparation pour la production
+### ⚠️ Variables d'environnement en production
+
+**Important** : Les variables d'environnement présentes dans le fichier `.env` de ce projet sont configurées pour un environnement de développement local et ne doivent **JAMAIS** être utilisées en production.
+
+#### 🔒 Sécurisation pour la production
+
+Avant de déployer en production, vous devez modifier les variables suivantes :
+
+##### 1. APP_SECRET
+```env
+# ❌ NE PAS utiliser en production
+APP_SECRET=391cb65e27a95a4d88a63c793158960e
+
+# ✅ Générer une nouvelle clé secrète unique
+APP_SECRET=your_unique_production_secret_key
+```
+
+Générez une nouvelle clé secrète :
+```bash
+php bin/console secrets:generate-keys
+```
+
+##### 2. APP_ENV
+```env
+# ❌ Mode développement
+APP_ENV=dev
+
+# ✅ Mode production
+APP_ENV=prod
+```
+
+##### 3. DATABASE_URL
+```env
+# ❌ Identifiants par défaut
+DATABASE_URL="postgresql://postgres:postgres@127.0.0.1:5432/ina_zaoui?serverVersion=16&charset=utf8"
+
+# ✅ Identifiants sécurisés de production
+DATABASE_URL="postgresql://secure_user:secure_password@prod_host:5432/prod_database?serverVersion=16&charset=utf8"
+```
+
+##### 4. MAILER_DSN (si utilisé)
+```env
+# ❌ Configuration de test
+MAILER_DSN=null://null
+
+# ✅ Configuration SMTP réelle
+MAILER_DSN=smtp://username:password@smtp.server.com:587
+```
+
+#### 🛡️ Méthodes recommandées pour la production
+
+##### Option 1 : Variables d'environnement système
+```bash
+# Sur votre serveur de production
+export APP_ENV=prod
+export APP_SECRET=your_production_secret
+export DATABASE_URL=postgresql://user:pass@host:5432/db
+```
+
+##### Option 2 : Symfony Secrets (recommandé)
+```bash
+# Configurer les secrets Symfony
+php bin/console secrets:set APP_SECRET
+php bin/console secrets:set DATABASE_URL
+
+# Les secrets sont chiffrés et stockés dans config/secrets/prod/
+```
+
+##### Option 3 : Fichier .env.local (non versionné)
+```bash
+# Créer un .env.local sur le serveur (non commité dans Git)
+echo "APP_ENV=prod" > .env.local
+echo "APP_SECRET=your_secret" >> .env.local
+echo "DATABASE_URL=your_db_url" >> .env.local
+```
+
+#### 📋 Checklist avant déploiement
+
+- [ ] `APP_ENV=prod`
+- [ ] `APP_SECRET` unique et sécurisé
+- [ ] `DATABASE_URL` avec identifiants de production
+- [ ] `MAILER_DSN` configuré si nécessaire
+- [ ] Cache optimisé (`php bin/console cache:clear --env=prod`)
+- [ ] Assets compilés (`php bin/console asset-map:compile`)
+- [ ] Permissions correctes sur les dossiers `var/` et `public/uploads/`
+
+#### 🔍 Vérification de la configuration
 
 ```bash
-# Installer les dépendances pour la production
-composer install --no-dev --optimize-autoloader
+# Vérifier la configuration en production
+php bin/console debug:config
 
-# Vider et chauffer le cache
-APP_ENV=prod php bin/console cache:clear
-APP_ENV=prod php bin/console cache:warmup
-
-# Exécuter les migrations
-APP_ENV=prod php bin/console doctrine:migrations:migrate
+# Vérifier les variables d'environnement
+php bin/console debug:container --env-vars
 ```
 
-### Variables d'environnement pour la production
+### 📁 Structure des fichiers d'environnement
 
-```env
-APP_ENV=prod
-APP_DEBUG=false
-DATABASE_URL="postgresql://user:pass@host:port/db_name"
+```
+.env              # Configuration par défaut (versionné)
+.env.local        # Surcharges locales (NON versionné)
+.env.prod         # Configuration de production (versionné si nécessaire)
+.env.prod.local   # Surcharges de production (NON versionné)
 ```
 
-### Serveur web
+### 🚨 Rappel de sécurité
 
-Configurez votre serveur web pour pointer vers le dossier `public/` et assurez-vous que :
-
-- PHP >= 8.2 est installé
-- Les extensions requises sont activées
-- Les permissions sont correctement configurées
-- HTTPS est configuré
+- ✅ Les fichiers `.env` avec des valeurs factices peuvent être commités
+- ❌ Ne jamais commiter de vraies clés API, mots de passe ou secrets
+- ✅ Utiliser `.env.local` ou les secrets Symfony pour les données sensibles
+- ✅ Changer tous les mots de passe par défaut avant la mise en production
 
 ---
 
