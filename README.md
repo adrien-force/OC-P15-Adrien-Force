@@ -326,14 +326,6 @@ Configurez votre serveur web pour pointer vers le dossier `public/` et assurez-v
 
 ## 📝 Notes techniques
 
-### Sauvegarde et restauration
-
-Un fichier `backup.zip` contient :
-- Un dump SQL anonymisé de la base de données
-- Toutes les images du dossier `public/uploads`
-
-⚠️ **Note** : Le fichier de sauvegarde est volumineux (>1Go). Une solution d'optimisation est recommandée pour la production.
-
 ### Optimisations implémentées
 
 - Compression automatique des images WebP
