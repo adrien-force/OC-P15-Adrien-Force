@@ -3,10 +3,10 @@
 namespace App\Controller;
 
 use App\Entity\Album;
-use App\Entity\Media;
 use App\Entity\User;
+use App\Repository\AlbumRepository;
+use App\Repository\MediaRepository;
 use App\Repository\UserRepository;
-use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -15,8 +15,9 @@ use Symfony\Component\Routing\Attribute\Route;
 class HomeController extends AbstractController
 {
     public function __construct(
-        private readonly EntityManagerInterface $em,
         private readonly UserRepository $userRepository,
+        private readonly AlbumRepository $albumRepository,
+        private readonly MediaRepository $mediaRepository,
     ) {
     }
 
@@ -63,26 +64,35 @@ class HomeController extends AbstractController
     #[Route(path: '/portfolio/{id?}', name: 'portfolio')]
     public function portfolio(?Album $album, Request $request): Response
     {
-        $page = $request->query->getInt('page', 1);
+        $mediaPage = $request->query->getInt('page', 1);
+        $albumPage = $request->query->getInt('albumPage', 1);
         $limit = $request->query->getInt('limit', 15);
 
-        $albums = $this->em->getRepository(Album::class)->findAll();
-        $mediaRepository = $this->em->getRepository(Media::class);
-
-        $medias = $mediaRepository->findByAlbumPaginated(
-            $album,
-            $limit,
-            $limit * ($page - 1)
+        $albums = $this->albumRepository->findAllPaginated(
+            [],
+            ['id' => 'ASC'],
+            6,
+            6 * ($albumPage - 1)
         );
 
-        $total = $mediaRepository->countByAlbum($album);
+        $totalAlbums = $this->albumRepository->countWithCriteria([]);
+
+        $medias = $this->mediaRepository->findByAlbumPaginated(
+            $album,
+            $limit,
+            $limit * ($mediaPage - 1)
+        );
+
+        $totalMedia = $this->mediaRepository->countByAlbum($album);
 
         return $this->render('front/portfolio.html.twig', [
             'albums' => $albums,
+            'totalAlbums' => $totalAlbums,
+            'albumPage' => $albumPage,
             'album' => $album,
             'medias' => $medias,
-            'total' => $total,
-            'page' => $page,
+            'total' => $totalMedia,
+            'page' => $mediaPage,
             'limit' => $limit,
         ]);
     }

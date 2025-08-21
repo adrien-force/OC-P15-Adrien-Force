@@ -7,33 +7,36 @@
             <div class="mb-5 position-relative">
                 <div class="d-flex">
                     <div class="col-2">
-                        <a class="btn w-100 py-3 {{ album is null ? 'active' }}" href="{{ path('portfolio') }}">
+                        <a class="btn w-100 py-3 {{ album is null ? 'active' }}" href="{{ path('portfolio', {albumPage: albumPage}) }}">
                             Toutes
                         </a>
                     </div>
-                    <div class="album-slider-container position-relative" style="width: 83.33%; overflow-x: hidden;">
-                        <div class="album-slider d-flex" style="transition: transform 0.3s ease;">
-                            {% for a in albums %}
-                                <div class="col-2 flex-shrink-0">
-                                    <a class="btn w-100 py-3 {{ album == a ? 'active' }}" href="{{ path('portfolio', {id: a.id}) }}">
-                                        {{ a.name }}
-                                    </a>
-                                </div>
-                            {% endfor %}
-                        </div>
+                    <div class="d-flex flex-wrap" style="width: 83.33%;">
+                        {% for a in albums %}
+                            <div class="col-2">
+                                <a class="btn w-100 py-3 {{ album == a ? 'active' }}" href="{{ path('portfolio', {id: a.id, albumPage: albumPage}) }}">
+                                    {{ a.name }}
+                                </a>
+                            </div>
+                        {% endfor %}
                     </div>
                 </div>
-                {% if albums|length > 5 %}
+                {% set totalAlbumPages = max(1, (totalAlbums / 6)|round(0, 'ceil')) %}
+                {% if totalAlbumPages > 1 %}
                 <div class="d-flex justify-content-between mt-3">
                     <div>
-                        <button class="album-nav-prev btn" style="z-index: 10; display: none;">
-                            <i class="bi bi-chevron-left"></i> Précédent
-                        </button>
+                        {% if albumPage > 1 %}
+                            <a class="btn" href="{{ path('portfolio', {id: album ? album.id : null, albumPage: albumPage - 1, page: page, limit: limit}) }}" style="z-index: 10;">
+                                <i class="bi bi-chevron-left"></i> Précédent
+                            </a>
+                        {% endif %}
                     </div>
                     <div>
-                        <button class="album-nav-next btn" style="z-index: 10;">
-                            Suivant <i class="bi bi-chevron-right"></i>
-                        </button>
+                        {% if albumPage < totalAlbumPages %}
+                            <a class="btn" href="{{ path('portfolio', {id: album ? album.id : null, albumPage: albumPage + 1, page: page, limit: limit}) }}" style="z-index: 10;">
+                                Suivant <i class="bi bi-chevron-right"></i>
+                            </a>
+                        {% endif %}
                     </div>
                 </div>
                 {% endif %}
@@ -111,110 +114,4 @@
         </div>
     </div>
 
-    {% if albums|length > 5 %}
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const slider = document.querySelector('.album-slider');
-            const sliderContainer = document.querySelector('.album-slider-container');
-            const prevBtn = document.querySelector('.album-nav-prev');
-            const nextBtn = document.querySelector('.album-nav-next');
-            const itemWidth = document.querySelector('.album-slider .col-2').offsetWidth;
-            let currentPosition = 0;
-            const maxPosition = (slider.children.length - 5) * itemWidth;
-
-            updateNavButtons();
-
-            prevBtn.addEventListener('click', function() {
-                currentPosition = Math.max(0, currentPosition - itemWidth);
-                updateSliderPosition();
-            });
-
-            nextBtn.addEventListener('click', function() {
-                currentPosition = Math.min(maxPosition, currentPosition + itemWidth);
-                updateSliderPosition();
-            });
-
-            sliderContainer.addEventListener('wheel', function(e) {
-                e.preventDefault();
-
-                if (e.deltaX > 0 || e.deltaY > 0) {
-                    currentPosition = Math.min(maxPosition, currentPosition + itemWidth);
-                } else {
-                    currentPosition = Math.max(0, currentPosition - itemWidth);
-                }
-
-                updateSliderPosition();
-            }, { passive: false });
-
-            function updateSliderPosition() {
-                slider.style.transform = `translateX(-${currentPosition}px)`;
-                updateNavButtons();
-            }
-
-            function updateNavButtons() {
-                prevBtn.style.display = currentPosition > 0 ? 'block' : 'none';
-                nextBtn.style.display = currentPosition < maxPosition ? 'block' : 'none';
-            }
-
-            let touchStartX = 0;
-            let touchEndX = 0;
-
-            slider.addEventListener('touchstart', function(e) {
-                touchStartX = e.changedTouches[0].screenX;
-            }, { passive: true });
-
-            slider.addEventListener('touchend', function(e) {
-                touchEndX = e.changedTouches[0].screenX;
-                handleSwipe();
-            }, { passive: true });
-
-            function handleSwipe() {
-                const difference = touchStartX - touchEndX;
-                if (difference > 50) {
-                    currentPosition = Math.min(maxPosition, currentPosition + itemWidth);
-                } else if (difference < -50) {
-                    currentPosition = Math.max(0, currentPosition - itemWidth);
-                }
-                updateSliderPosition();
-            }
-
-            let isDragging = false;
-            let startPosition = 0;
-            let startX = 0;
-
-            slider.addEventListener('mousedown', function(e) {
-                isDragging = true;
-                startPosition = currentPosition;
-                startX = e.clientX;
-                slider.style.transition = 'none';
-                e.preventDefault();
-            });
-
-            document.addEventListener('mousemove', function(e) {
-                if (!isDragging) return;
-                const diff = startX - e.clientX;
-                const newPosition = Math.max(0, Math.min(maxPosition, startPosition + diff));
-                slider.style.transform = `translateX(-${newPosition}px)`;
-            });
-
-            document.addEventListener('mouseup', function(e) {
-                if (!isDragging) return;
-                isDragging = false;
-                slider.style.transition = 'transform 0.3s ease';
-
-                const diff = startX - e.clientX;
-                if (Math.abs(diff) > 50) {
-                    if (diff > 0) {
-                        currentPosition = Math.min(maxPosition, startPosition + itemWidth);
-                    } else {
-                        currentPosition = Math.max(0, startPosition - itemWidth);
-                    }
-                } else {
-                        currentPosition = Math.round(currentPosition / itemWidth) * itemWidth;
-                }
-                updateSliderPosition();
-            });
-        });
-    </script>
-    {% endif %}
 {% endblock %}
