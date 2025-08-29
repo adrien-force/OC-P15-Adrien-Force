@@ -32,7 +32,9 @@ class MediaType extends AbstractType
                     new File(
                         maxSize: self::MAX_FILE_SIZE,
                         mimeTypes: self::ALLOWED_MIME_TYPES,
-                        mimeTypesMessage: sprintf('Les extensions autorisées sont : %s.', implode(', ', self::ALLOWED_EXTENSIONS))
+                        mimeTypesMessage: sprintf('Les extensions autorisées sont : %s.', implode(', ', self::ALLOWED_EXTENSIONS)),
+                        extensions: self::ALLOWED_EXTENSIONS,
+                        extensionsMessage: sprintf('Les extensions autorisées sont : %s.', implode(', ', self::ALLOWED_EXTENSIONS))
                     ),
                 ],
             ])
