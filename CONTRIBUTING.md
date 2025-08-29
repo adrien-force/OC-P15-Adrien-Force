@@ -317,7 +317,7 @@ vendor/bin/php-cs-fixer fix
 
 ### Analyse statique avec PHPStan
 
-Le projet utilise **PHPStan niveau 10** (maximum).
+Le projet utilise **PHPStan niveau 6** (maximum).
 
 ```bash
 # Analyser le code
@@ -333,6 +333,7 @@ vendor/bin/phpstan analyse src
    - Méthodes : `camelCase`
    - Variables : `camelCase`
    - Constantes : `SNAKE_CASE`
+   - Enums : `PascalCase`
 
 2. **Structure**
    - Longueur maximale des lignes : 120 caractères

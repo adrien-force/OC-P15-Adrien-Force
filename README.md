@@ -420,7 +420,7 @@ php bin/console debug:container --env-vars
 
 Pour toute question ou problème :
 
-1. Consultez la documentation Symfony officielle
+1. Consultez la documentation Symfony officielle [Symfony Docs](https://symfony.com/doc/current/index.html)
 2. Vérifiez les logs dans `var/log/`
 3. Consultez les issues du projet
 
