@@ -24,7 +24,7 @@ class MediaRepository extends ServiceEntityRepository
     /**
      * Finds media with pagination and joins on album and user.
      *
-     * @param array<string, string> $criteria Filtering criteria
+     * @param array<string, int|null> $criteria Filtering criteria
      * @param array{id: string}     $orderBy  Order options
      * @param int                   $limit    Max results
      * @param int                   $offset   Result offset
@@ -48,6 +48,8 @@ class MediaRepository extends ServiceEntityRepository
             $qb->addOrderBy("m.$field", $direction);
         }
 
+        $sql = $qb->getQuery()->getSQL();
+
         /** @var Media[] $result */
         $result = $qb
             ->setMaxResults($limit)
@@ -61,7 +63,7 @@ class MediaRepository extends ServiceEntityRepository
     /**
      * Count total medias matching criteria.
      *
-     * @param array<string, string> $criteria Filtering criteria
+     * @param array<string, int|null> $criteria Filtering criteria
      *
      * @return int Total count
      */

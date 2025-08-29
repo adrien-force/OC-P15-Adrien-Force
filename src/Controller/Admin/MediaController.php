@@ -34,7 +34,7 @@ class MediaController extends AbstractController
         if (!$this->isGranted(User::ADMIN_ROLE)) {
             $user = $this->getUser();
             if ($user instanceof User) {
-                $criteria['user'] = $user;
+                $criteria['user'] = $user->getId();
             }
         }
 
