@@ -279,7 +279,6 @@ class HomeControllerTest extends WebTestCase
 
         if (!$emptyAlbum) {
             self::markTestSkipped('No empty album found for testing empty state.');
-            return;
         }
 
         $client = $this->getTestClient();

@@ -23,7 +23,7 @@ class MediaFixture extends Fixture implements DependentFixtureInterface
         $albums = $this->albumRepository->findAll();
         $medias = [];
 
-        for ($i = 0, $iMax = count($albums); $i < $iMax; ++$i) {
+        for ($i = 0, $iMax = count($albums) - 1; $i < $iMax; ++$i) {
             $mediaFolder = dirname(__DIR__, 2).'/public/uploads/';
             $imageName = (($i % 200) + 1).'.webp';
             $mediaPath = $mediaFolder.$imageName;
