@@ -237,6 +237,233 @@ class HomeControllerTest extends WebTestCase
         );
     }
 
+    public function guestsSearchProvider(): \Generator
+    {
+        yield 'empty search' => [
+            'searchTerm' => '',
+            'expectResults' => true,
+            'expectClearButton' => false,
+        ];
+
+        yield 'whitespace only search' => [
+            'searchTerm' => '   ',
+            'expectResults' => null,
+            'expectClearButton' => true,
+        ];
+
+        yield 'single character search' => [
+            'searchTerm' => 'a',
+            'expectResults' => null,
+            'expectClearButton' => true,
+        ];
+
+        yield 'numeric search' => [
+            'searchTerm' => '123',
+            'expectResults' => null,
+            'expectClearButton' => true,
+        ];
+
+        yield 'special characters search' => [
+            'searchTerm' => '@#$%',
+            'expectResults' => false,
+            'expectClearButton' => true,
+        ];
+
+        yield 'long search term' => [
+            'searchTerm' => 'verylongsearchtermnobodyshouldhave',
+            'expectResults' => false,
+            'expectClearButton' => true,
+        ];
+    }
+
+    /**
+     * @dataProvider guestsSearchProvider
+     */
+    public function testGuestsSearchField(string $searchTerm, ?bool $expectResults, bool $expectClearButton): void
+    {
+        $client = $this->getTestClient();
+        $crawler = $client->request('GET', '/guests?search='.urlencode($searchTerm));
+        self::assertResponseIsSuccessful();
+
+        self::assertGreaterThan(
+            0,
+            $crawler->filter('[data-testid="search-form"]')->count(),
+            'Search form should always be present'
+        );
+
+        self::assertGreaterThan(
+            0,
+            $crawler->filter('[data-testid="search-input"]')->count(),
+            'Search input should always be present'
+        );
+
+        $inputValue = $crawler->filter('[data-testid="search-input"]')->attr('value');
+        self::assertSame(
+            $searchTerm,
+            $inputValue,
+            'Search input value should match the search term'
+        );
+
+        if ($expectClearButton) {
+            self::assertGreaterThan(
+                0,
+                $crawler->filter('[data-testid="clear-search"]')->count(),
+                'Clear search button should be present when search term is provided'
+            );
+        } else {
+            self::assertSame(
+                0,
+                $crawler->filter('[data-testid="clear-search"]')->count(),
+                'Clear search button should not be present when no search term'
+            );
+        }
+
+        if ($expectResults === true) {
+            self::assertGreaterThan(
+                0,
+                $crawler->filter('[data-testid="guests-list"]')->count(),
+                'Guests list should be present when results are expected'
+            );
+        } elseif ($expectResults === false) {
+            self::assertGreaterThan(
+                0,
+                $crawler->filter('[data-testid="no-guests-message"]')->count(),
+                'No guests message should be displayed when no results expected'
+            );
+
+            self::assertSame(
+                0,
+                $crawler->filter('[data-testid="guests-list"]')->count(),
+                'Guests list should not be present when no results expected'
+            );
+        }
+    }
+
+    public function testGuestsSearchFormSubmission(): void
+    {
+        $guests = $this->userRepository->findAllGuestUsers();
+        if (empty($guests)) {
+            self::markTestSkipped('No guest users found for search testing.');
+        }
+
+        $client = $this->getTestClient();
+        $crawler = $client->request('GET', '/guests');
+
+        $form = $crawler->filter('[data-testid="search-form"]')->form();
+        $form['search'] = $guests[0]->getName();
+
+        $crawler = $client->submit($form);
+        self::assertResponseIsSuccessful();
+
+        self::assertGreaterThan(
+            0,
+            $crawler->filter('[data-testid="search-input"]')->count(),
+            'Search input should be present after form submission'
+        );
+
+        self::assertSame(
+            $guests[0]->getName(),
+            $crawler->filter('[data-testid="search-input"]')->attr('value'),
+            'Search input should contain the submitted search term'
+        );
+    }
+
+    public function testGuestsSearchByEmail(): void
+    {
+        $guests = $this->userRepository->findAllGuestUsers();
+        if (empty($guests)) {
+            self::markTestSkipped('No guest users found for email search testing.');
+        }
+
+        $guestWithEmail = null;
+        foreach ($guests as $guest) {
+            if (!empty($guest->getEmail())) {
+                $guestWithEmail = $guest;
+                break;
+            }
+        }
+
+        if (!$guestWithEmail) {
+            self::markTestSkipped('No guest user with email found for email search testing.');
+        }
+
+        $emailPart = substr($guestWithEmail->getEmail(), 0, 5);
+
+        $client = $this->getTestClient();
+        $crawler = $client->request('GET', '/guests?search='.$emailPart);
+        self::assertResponseIsSuccessful();
+
+        self::assertGreaterThan(
+            0,
+            $crawler->filter('[data-testid="search-input"]')->count(),
+            'Search input should be present'
+        );
+
+        self::assertSame(
+            $emailPart,
+            $crawler->filter('[data-testid="search-input"]')->attr('value'),
+            'Search input should contain the email search term'
+        );
+    }
+
+    public function testGuestsClearSearchFunctionality(): void
+    {
+        $client = $this->getTestClient();
+        $crawler = $client->request('GET', '/guests?search=testsearch');
+        self::assertResponseIsSuccessful();
+
+        self::assertGreaterThan(
+            0,
+            $crawler->filter('[data-testid="clear-search"]')->count(),
+            'Clear search button should be present'
+        );
+
+        $clearLink = $crawler->filter('[data-testid="clear-search"]')->link();
+        $crawler = $client->click($clearLink);
+        self::assertResponseIsSuccessful();
+
+        self::assertSame(
+            '',
+            $crawler->filter('[data-testid="search-input"]')->attr('value'),
+            'Search input should be empty after clearing search'
+        );
+
+        self::assertSame(
+            0,
+            $crawler->filter('[data-testid="clear-search"]')->count(),
+            'Clear search button should not be present after clearing'
+        );
+    }
+
+    public function testGuestsSearchWithPaginationPersistence(): void
+    {
+        $guests = $this->userRepository->findAllGuestUsers();
+        if (count($guests) < 20) {
+            self::markTestSkipped('Not enough guests to test search with pagination.');
+        }
+
+        $searchTerm = substr($guests[0]->getName(), 0, 2);
+
+        $client = $this->getTestClient();
+        $crawler = $client->request('GET', '/guests?search='.$searchTerm.'&page=1&limit=15');
+        self::assertResponseIsSuccessful();
+
+        $totalGuests = $this->userRepository->countWithCriteria(['isGuest' => true], $searchTerm);
+        $totalPages = max(1, (int) ceil($totalGuests / 15));
+
+        if ($totalPages > 1) {
+            $paginationLinks = $crawler->filter('[data-testid^="guests-pagination-"]');
+            $paginationLinks->each(function ($node) use ($searchTerm) {
+                $href = $node->attr('href');
+                self::assertStringContainsString(
+                    'search='.$searchTerm,
+                    $href,
+                    'Pagination links should preserve search term'
+                );
+            });
+        }
+    }
+
     public function testGuestPage(): void
     {
         $client = $this->getTestClient();
