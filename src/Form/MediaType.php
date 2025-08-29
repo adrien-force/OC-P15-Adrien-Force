@@ -20,8 +20,7 @@ class MediaType extends AbstractType
 {
     private const MAX_FILE_SIZE = '2048k';
     private const ALLOWED_EXTENSIONS = ['jpg', 'jpeg', 'png', 'webp', 'bmp', 'tiff', 'heic'];
-    private const ALLOWED_MIME_TYPES =  ['image/jpg', 'image/jpeg', 'image/png', 'image/webp', 'image/bmp', 'image/tiff', 'image/heic'];
-
+    private const ALLOWED_MIME_TYPES = ['image/jpg', 'image/jpeg', 'image/png', 'image/webp', 'image/bmp', 'image/tiff', 'image/heic'];
 
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
