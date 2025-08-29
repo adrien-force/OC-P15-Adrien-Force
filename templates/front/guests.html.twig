@@ -5,16 +5,17 @@
         <div class="col-12">
             <div class="d-flex justify-content-between align-items-center mb-4">
                 <h3>Invités</h3>
-                <form class="d-flex" method="get" action="{{ path('guests') }}" style="width: 300px;">
+                <form class="d-flex" method="get" action="{{ path('guests') }}" style="width: 300px;" data-testid="search-form">
                     <div class="input-group">
                         <input type="text" class="form-control" name="search" placeholder="Rechercher par nom ou email..."
                                value="{{ search|default('') }}"
-                               style="font-size: 0.85rem; background-color: #DFECF0; border: 1px solid #B0C4C8;">
-                        <button class="btn btn-outline-dark" type="submit" title="Rechercher">
+                               style="font-size: 0.85rem; background-color: #DFECF0; border: 1px solid #B0C4C8;"
+                               data-testid="search-input">
+                        <button class="btn btn-outline-dark" type="submit" title="Rechercher" data-testid="search-button">
                             <i class="bi bi-search-heart-fill"></i>
                         </button>
                         {% if search is defined and search %}
-                            <a href="{{ path('guests') }}" class="btn btn-outline-danger" title="Effacer la recherche">
+                            <a href="{{ path('guests') }}" class="btn btn-outline-danger" title="Effacer la recherche" data-testid="clear-search">
                                 <i class="bi bi-trash-fill"></i>
                             </a>
                         {% endif %}
@@ -23,16 +24,16 @@
             </div>
 
             {% if guests|length > 0 %}
-                <div class="guests d-flex flex-column">
+                <div class="guests d-flex flex-column" data-testid="guests-list">
                     {% for guest in guests %}
-                        <div class="guest py-3 d-flex justify-content-between align-items-center">
+                        <div class="guest py-3 d-flex justify-content-between align-items-center" data-testid="guest-item">
                             <h4>{{ guest.name }} ({{ guest.medias|length }})</h4>
-                            <a href="{{ path('guest', {id: guest.id}) }}">découvrir</a>
+                            <a href="{{ path('guest', {id: guest.id}) }}" data-testid="guest-link-{{ guest.id }}">découvrir</a>
                         </div>
                     {% endfor %}
                 </div>
             {% else %}
-                <div class="alert alert-info my-5 text-center">
+                <div class="alert alert-info my-5 text-center" data-testid="no-guests-message">
                     <div class="d-flex align-items-center justify-content-center">
                         <i class="bi bi-info-circle-fill me-3 fs-3"></i>
                         <div>
@@ -52,35 +53,36 @@
             {% set totalPages = max(1, (total / limit)|round(0, 'ceil')) %}
 
             {% if totalPages > 1 %}
-                <nav aria-label="Page navigation" class="mt-4">
+                <nav aria-label="Page navigation" class="mt-4" data-testid="guests-pagination">
                     <div class="d-flex justify-content-between align-items-center">
                         <ul class="pagination">
                             {% if page > 1 %}
                                 <li class="page-item">
-                                    <a class="btn" href="{{ path('guests', {page: page - 1, limit: limit, search: search|default('')}) }}">Précédent</a>
+                                    <a class="btn" href="{{ path('guests', {page: page - 1, limit: limit, search: search|default('')}) }}" data-testid="guests-pagination-prev">Précédent</a>
                                 </li>
                             {% endif %}
 
                             {% for i in range(max(1, page - 2), min(totalPages, page + 2)) %}
                                 <li class="page-item {% if i == page %}custom_active{% endif %}">
-                                    <a class="btn" href="{{ path('guests', {page: i, limit: limit, search: search|default('')}) }}">{{ i }}</a>
+                                    <a class="btn" href="{{ path('guests', {page: i, limit: limit, search: search|default('')}) }}" data-testid="guests-pagination-page-{{ i }}">{{ i }}</a>
                                 </li>
                             {% endfor %}
 
                             {% if page < totalPages %}
                                 <li class="page-item">
-                                    <a class="btn" href="{{ path('guests', {page: page + 1, limit: limit, search: search|default('')}) }}">Suivant</a>
+                                    <a class="btn" href="{{ path('guests', {page: page + 1, limit: limit, search: search|default('')}) }}" data-testid="guests-pagination-next">Suivant</a>
                                 </li>
                             {% endif %}
                         </ul>
                         <div>
-                            <form class="d-flex align-items-center" method="get" action="{{ path('guests') }}">
+                            <form class="d-flex align-items-center" method="get" action="{{ path('guests') }}" data-testid="limit-form">
                                 <label for="limit" class="me-2 text-nowrap">Éléments par page:</label>
                                 <div class="d-inline-block position-relative">
                                     <select class="form-select form-control border border-dark rounded-0"
                                             style="background-color: transparent; font-family: 'DM Sans', sans-serif; font-size: 14px;"
                                             id="limit"
                                             name="limit"
+                                            data-testid="limit-select"
                                             onchange="this.form.submit()">
                                         {% for option in [15, 30, 50, 100] %}
                                             <option value="{{ option }}" {% if limit == option %}selected{% endif %}>{{ option }}</option>

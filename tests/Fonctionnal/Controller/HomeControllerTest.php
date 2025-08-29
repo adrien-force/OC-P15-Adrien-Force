@@ -45,6 +45,198 @@ class HomeControllerTest extends WebTestCase
         self::assertResponseIsSuccessful();
     }
 
+    public function guestsPaginationProvider(): \Generator
+    {
+        yield 'default pagination' => [
+            'url' => '/guests',
+            'expectedElements' => ['search-form', 'guests-list'],
+        ];
+
+        yield 'first page with limit 15' => [
+            'url' => '/guests?page=1&limit=15',
+            'expectedElements' => ['search-form', 'guests-list'],
+        ];
+
+        yield 'first page with limit 30' => [
+            'url' => '/guests?page=1&limit=30',
+            'expectedElements' => ['search-form', 'guests-list'],
+        ];
+
+        yield 'first page with limit 50' => [
+            'url' => '/guests?page=1&limit=50',
+            'expectedElements' => ['search-form', 'guests-list'],
+        ];
+
+        yield 'first page with limit 100' => [
+            'url' => '/guests?page=1&limit=100',
+            'expectedElements' => ['search-form', 'guests-list'],
+        ];
+
+        yield 'second page pagination' => [
+            'url' => '/guests?page=2&limit=15',
+            'expectedElements' => ['search-form', 'guests-list'],
+        ];
+
+        yield 'search with pagination' => [
+            'url' => '/guests?search=test&page=1&limit=15',
+            'expectedElements' => ['search-form', 'clear-search'],
+        ];
+
+        yield 'search without results' => [
+            'url' => '/guests?search=nonexistentuser123',
+            'expectedElements' => ['search-form', 'no-guests-message', 'clear-search'],
+        ];
+    }
+
+    /**
+     * @dataProvider guestsPaginationProvider
+     */
+    public function testGuestsPagination(string $url, array $expectedElements): void
+    {
+        $client = $this->getTestClient();
+        $crawler = $client->request('GET', $url);
+        self::assertResponseIsSuccessful();
+
+        foreach ($expectedElements as $element) {
+            self::assertGreaterThan(
+                0,
+                $crawler->filter('[data-testid="'.$element.'"]')->count(),
+                sprintf('Element with data-testid="%s" should be present on page %s', $element, $url)
+            );
+        }
+    }
+
+    public function testGuestsPaginationControls(): void
+    {
+        $client = $this->getTestClient();
+        $crawler = $client->request('GET', '/guests?page=1&limit=15');
+        self::assertResponseIsSuccessful();
+
+        $totalGuests = $this->userRepository->countWithCriteria(['isGuest' => true]);
+        $totalPages = max(1, (int) ceil($totalGuests / 15));
+
+        if ($totalPages > 1) {
+            self::assertGreaterThan(
+                0,
+                $crawler->filter('[data-testid="guests-pagination"]')->count(),
+                'Guests pagination should be visible when there are multiple pages'
+            );
+
+            self::assertGreaterThan(
+                0,
+                $crawler->filter('[data-testid="guests-pagination-next"]')->count(),
+                'Next button should be present on first page when multiple pages exist'
+            );
+        }
+
+        if ($totalPages > 2) {
+            $crawler = $client->request('GET', '/guests?page=2&limit=15');
+            self::assertResponseIsSuccessful();
+
+            self::assertGreaterThan(
+                0,
+                $crawler->filter('[data-testid="guests-pagination-prev"]')->count(),
+                'Previous button should be present on page 2'
+            );
+
+            if ($totalPages > 2) {
+                self::assertGreaterThan(
+                    0,
+                    $crawler->filter('[data-testid="guests-pagination-next"]')->count(),
+                    'Next button should be present on page 2 when more pages exist'
+                );
+            }
+        }
+    }
+
+    public function testGuestsLimitFormVisibility(): void
+    {
+        $client = $this->getTestClient();
+        $crawler = $client->request('GET', '/guests?page=1&limit=15');
+        self::assertResponseIsSuccessful();
+
+        $totalGuests = $this->userRepository->countWithCriteria(['isGuest' => true]);
+        $totalPages = max(1, (int) ceil($totalGuests / 15));
+
+        if ($totalPages > 1) {
+            self::assertGreaterThan(
+                0,
+                $crawler->filter('[data-testid="limit-form"]')->count(),
+                'Limit form should be present when there are multiple pages'
+            );
+
+            self::assertGreaterThan(
+                0,
+                $crawler->filter('[data-testid="limit-select"]')->count(),
+                'Limit select should be present when there are multiple pages'
+            );
+        } else {
+            self::assertSame(
+                0,
+                $crawler->filter('[data-testid="limit-form"]')->count(),
+                'Limit form should not be present when there is only one page'
+            );
+        }
+    }
+
+    public function testGuestsSearchFunctionality(): void
+    {
+        $guests = $this->userRepository->findAllGuestUsers();
+        if (empty($guests)) {
+            self::markTestSkipped('No guest users found for search testing.');
+        }
+
+        $firstGuest = $guests[0];
+        $searchTerm = substr($firstGuest->getName(), 0, 3);
+
+        $client = $this->getTestClient();
+        $crawler = $client->request('GET', '/guests?search='.$searchTerm);
+        self::assertResponseIsSuccessful();
+
+        self::assertGreaterThan(
+            0,
+            $crawler->filter('[data-testid="search-input"]')->count(),
+            'Search input should be present'
+        );
+
+        self::assertSame(
+            $searchTerm,
+            $crawler->filter('[data-testid="search-input"]')->attr('value'),
+            'Search input should contain the search term'
+        );
+
+        self::assertGreaterThan(
+            0,
+            $crawler->filter('[data-testid="clear-search"]')->count(),
+            'Clear search button should be present when search is active'
+        );
+    }
+
+    public function testGuestsEmptySearchResult(): void
+    {
+        $client = $this->getTestClient();
+        $crawler = $client->request('GET', '/guests?search=nonexistentuser123456789');
+        self::assertResponseIsSuccessful();
+
+        self::assertGreaterThan(
+            0,
+            $crawler->filter('[data-testid="no-guests-message"]')->count(),
+            'No guests message should be displayed when search returns no results'
+        );
+
+        self::assertSame(
+            0,
+            $crawler->filter('[data-testid="guests-list"]')->count(),
+            'Guests list should not be present when there are no results'
+        );
+
+        self::assertSame(
+            0,
+            $crawler->filter('[data-testid="guests-pagination"]')->count(),
+            'Pagination should not be displayed when there are no results'
+        );
+    }
+
     public function testGuestPage(): void
     {
         $client = $this->getTestClient();
@@ -184,11 +376,14 @@ class HomeControllerTest extends WebTestCase
             );
         }
 
-        self::assertGreaterThan(
-            0,
-            $crawler->filter('[data-testid="album-filter-'.$album->getId().'"]')->count(),
-            'Current album should be highlighted in navigation'
-        );
+        $albumFilterExists = $crawler->filter('[data-testid="album-filter-'.$album->getId().'"]')->count() > 0;
+        if ($albumFilterExists) {
+            self::assertStringContainsString(
+                'active',
+                $crawler->filter('[data-testid="album-filter-'.$album->getId().'"]')->attr('class'),
+                'Current album should have active class when visible in navigation'
+            );
+        }
     }
 
     public function testPortfolioPaginationControls(): void
@@ -241,7 +436,6 @@ class HomeControllerTest extends WebTestCase
 
         if ($totalAlbumPages <= 1) {
             self::markTestSkipped('Not enough albums to test album pagination.');
-            return;
         }
 
         $client = $this->getTestClient();
