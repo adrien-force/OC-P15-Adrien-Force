@@ -20,6 +20,8 @@ class MediaType extends AbstractType
 {
     private const MAX_FILE_SIZE = '2048k';
     private const ALLOWED_EXTENSIONS = ['jpg', 'jpeg', 'png', 'webp', 'bmp', 'tiff', 'heic'];
+    private const ALLOWED_MIME_TYPES =  ['image/jpg', 'image/jpeg', 'image/png', 'image/webp', 'image/bmp', 'image/tiff', 'image/heic'];
+
 
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
@@ -29,8 +31,8 @@ class MediaType extends AbstractType
                 'constraints' => [
                     new File(
                         maxSize: self::MAX_FILE_SIZE,
-                        extensions: self::ALLOWED_EXTENSIONS,
-                        extensionsMessage: sprintf('Les extensions autorisées sont : %s.', implode(', ', self::ALLOWED_EXTENSIONS))
+                        mimeTypes: self::ALLOWED_MIME_TYPES,
+                        mimeTypesMessage: sprintf('Les extensions autorisées sont : %s.', implode(', ', self::ALLOWED_EXTENSIONS))
                     ),
                 ],
             ])
