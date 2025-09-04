@@ -15,7 +15,7 @@ class MediaFormTest extends WebTestCase
 
     public function provideUncorrectMediaFiles(): \Generator
     {
-        yield ['image.gif' => 'image.gif'];
+        yield ['image.gif' => 'small_image.gif'];
         yield ['image.svg' => 'image.svg'];
         yield ['audio.mp3' => 'audio.mp3'];
         yield ['video.mp4' => 'video.mp4'];
@@ -67,7 +67,7 @@ class MediaFormTest extends WebTestCase
 
         /** @var FileFormField $fileField */
         $fileField = $form['media[file]'];
-        $fileField->upload(__DIR__.'/MediaContent/large_image.jpeg');
+        $fileField->upload(__DIR__.'/MediaContent/large_test_2mb.jpg');
         $form['media[title]'] = 'Test Image';
 
         $client->submit($form);

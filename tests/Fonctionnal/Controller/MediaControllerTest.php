@@ -69,10 +69,10 @@ class MediaControllerTest extends WebTestCase
 
         $client->request(Request::METHOD_GET, '/admin/media/add');
 
-        $filePath = __DIR__.'/MediaContent/img.jpg';
+        $filePath = __DIR__.'/MediaContent/small_test.jpg';
         $uploadedFile = new UploadedFile(
             $filePath,
-            'img.jpg',
+            'small_test.jpg',
             'image/jpeg',
             null,
             true
@@ -104,10 +104,10 @@ class MediaControllerTest extends WebTestCase
 
         $client->request(Request::METHOD_GET, '/admin/media/add');
 
-        $filePath = __DIR__.'/MediaContent/img.jpg';
+        $filePath = __DIR__.'/MediaContent/small_test.jpg';
         $uploadedFile = new UploadedFile(
             $filePath,
-            'img.jpg',
+            'small_test.jpg',
             'image/jpeg',
             null,
             true
@@ -137,10 +137,10 @@ class MediaControllerTest extends WebTestCase
 
         $client->request(Request::METHOD_GET, '/admin/media/add');
 
-        $filePath = __DIR__.'/MediaContent/img.jpg';
+        $filePath = __DIR__.'/MediaContent/small_test.jpg';
         $uploadedFile = new UploadedFile(
             $filePath,
-            'img.jpg',
+            'small_test.jpg',
             'image/jpeg',
             null,
             true
@@ -177,7 +177,7 @@ class MediaControllerTest extends WebTestCase
         $uploadsDir = __DIR__.'/../../../public/uploads';
         $testFile = $uploadsDir.'/test_file_to_delete.jpg';
 
-        copy(__DIR__.'/MediaContent/img.jpg', $testFile);
+        copy(__DIR__.'/MediaContent/small_test.jpg', $testFile);
         self::assertFileExists($testFile);
 
         $media = $this->mediaRepository->findOneBy(['title' => 'Test Image 2']);

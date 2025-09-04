@@ -46,7 +46,7 @@ migrate:
 	php bin/console doctrine:migrations:migrate
 
 test:
-	memory_limit=5G ./bin/phpunit
+	./bin/phpunit
 
 coverage:
 	XDEBUG_MODE=coverage vendor/bin/phpunit --coverage-html var/coverage
