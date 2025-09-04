@@ -9,6 +9,7 @@ use App\Repository\MediaRepository;
 use App\Service\ImageCompressionService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -62,14 +63,12 @@ class MediaController extends AbstractController
         $form = $this->createForm(MediaType::class, $media, ['is_admin' => $this->isGranted(User::ADMIN_ROLE)]);
         $form->handleRequest($request);
         if ($form->isSubmitted() && $form->isValid() && $media->getFile()) {
-            if (!$this->isGranted(User::ADMIN_ROLE)) {
-                if (($user = $this->getUser()) instanceof User) {
-                    $media->setUser($user);
-                }
+            if (!$this->isGranted(User::ADMIN_ROLE) && ($user = $this->getUser()) instanceof User) {
+                $media->setUser($user);
             }
 
             $file = $media->getFile();
-            if (null === $file) {
+            if (!$file instanceof UploadedFile) {
                 throw new \InvalidArgumentException('File is required');
             }
 

@@ -131,7 +131,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     public function getUserIdentifier(): string
     {
-        if (empty($this->email)) {
+        if (!isset($this->email) || ('' === $this->email || '0' === $this->email)) {
             throw new \LogicException('User email cannot be empty');
         }
 

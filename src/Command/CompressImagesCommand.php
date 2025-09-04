@@ -4,18 +4,17 @@ namespace App\Command;
 
 use App\Service\ImageCompressionService;
 use Symfony\Component\Console\Attribute\AsCommand;
+use Symfony\Component\Console\Attribute\Option;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
-use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\Finder\Finder;
 
-#[AsCommand(
-    name: 'app:compress-images',
-    description: 'Compress existing images in the uploads folder',
-)]
+#[AsCommand(name: 'app:compress-images', description: 'Compress existing images in the uploads folder', help: <<<'TXT'
+This command compresses all images in the uploads folder to reduce file size while maintaining quality.
+TXT)]
 class CompressImagesCommand extends Command
 {
     private const SUPPORTED_EXTENSIONS = ['jpg', 'jpeg', 'png', 'webp', 'bmp', 'tiff', 'heic'];
@@ -28,20 +27,15 @@ class CompressImagesCommand extends Command
         parent::__construct();
     }
 
-    protected function configure(): void
-    {
-        $this
-            ->addOption('quality', 'qa', InputOption::VALUE_OPTIONAL, 'Compression quality (1-100)', 85)
-            ->addOption('dry-run', null, InputOption::VALUE_NONE, 'Show what would be compressed without actually doing it')
-            ->setHelp('This command compresses all images in the uploads folder to reduce file size while maintaining quality.');
-    }
-
-    protected function execute(InputInterface $input, OutputInterface $output): int
-    {
+    public function __invoke(
+        InputInterface $input,
+        OutputInterface $output,
+        #[Option(description: 'Quality 1-100')] int $quality = 85,
+        #[Option(description: 'Dry run mode')] bool $dry_run = false,
+    ): int {
         $io = new SymfonyStyle($input, $output);
-        $qualityOption = $input->getOption('quality');
-        $quality = is_numeric($qualityOption) ? (int) $qualityOption : 85;
-        $dryRun = $input->getOption('dry-run');
+
+        $dryRun = $dry_run;
 
         if ($quality < 1 || $quality > 100) {
             $io->error('Quality must be between 1 and 100');

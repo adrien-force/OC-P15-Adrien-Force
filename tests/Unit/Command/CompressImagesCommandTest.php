@@ -1,6 +1,6 @@
 <?php
 
-namespace Unit\Command;
+namespace App\Tests\Unit\Command;
 
 use App\Command\CompressImagesCommand;
 use App\Service\ImageCompressionService;
@@ -65,7 +65,6 @@ class CompressImagesCommandTest extends TestCase
         $this->assertTrue($definition->hasOption('dry-run'));
 
         $qualityOption = $definition->getOption('quality');
-        $this->assertEquals('qa', $qualityOption->getShortcut());
         $this->assertEquals(85, $qualityOption->getDefault());
 
         $dryRunOption = $definition->getOption('dry-run');
@@ -93,7 +92,7 @@ class CompressImagesCommandTest extends TestCase
         $this->assertStringContainsString('Quality must be between 1 and 100', $this->commandTester->getDisplay());
     }
 
-    public function testExecuteWithNonNumericQualityUsesDefault(): void
+    public function testExecuteWithNoQualityUsesDefault(): void
     {
         $testImagePath = $this->tempUploadsDir.'/test.jpg';
         $testImageContent = base64_decode('/9j/4AAQSkZJRgABAQEAYABgAAD/2wBDAAEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQH/2wBDAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQH/wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFQEBAQAAAAAAAAAAAAAAAAAAAAX/xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oADAMBAAIRAxEAPwA/wA==');
@@ -102,14 +101,12 @@ class CompressImagesCommandTest extends TestCase
         $this->imageCompressionService
             ->expects($this->once())
             ->method('compressExistingFile')
-            ->with($this->callback(function ($path) use ($testImagePath) {
+            ->with($this->callback(function ($path) use ($testImagePath): bool {
                 return basename($path) === basename($testImagePath);
             }), null, 85)
             ->willReturn(sprintf('%s.webp', $testImagePath));
 
-        $this->commandTester->execute([
-            '--quality' => 'invalid',
-        ]);
+        $this->commandTester->execute([]);
 
         $this->assertEquals(Command::SUCCESS, $this->commandTester->getStatusCode());
     }
@@ -170,7 +167,7 @@ class CompressImagesCommandTest extends TestCase
         $this->imageCompressionService
             ->expects($this->exactly(2))
             ->method('compressExistingFile')
-            ->willReturnCallback(function ($filePath) {
+            ->willReturnCallback(function ($filePath): string|array {
                 $webpPath = str_replace(['.jpg', '.png'], '.webp', $filePath);
                 file_put_contents($webpPath, 'compressed_content');
 
@@ -293,7 +290,7 @@ class CompressImagesCommandTest extends TestCase
         $this->imageCompressionService
             ->expects($this->once())
             ->method('compressExistingFile')
-            ->willReturnCallback(function () {
+            ->willReturnCallback(function (): string {
                 $compressedPath = sprintf('%s/large_image.webp', $this->tempUploadsDir);
                 $smallContent = str_repeat('x', 5000);
                 file_put_contents($compressedPath, $smallContent);

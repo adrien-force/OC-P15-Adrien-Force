@@ -1,10 +1,11 @@
 <?php
 
-namespace Fonctionnal\Controller;
+namespace App\Tests\Fonctionnal\Controller;
 
 use App\Repository\UserRepository;
 use Symfony\Bundle\FrameworkBundle\KernelBrowser;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
+use Symfony\Component\HttpFoundation\Request;
 
 class SecurityControllerTest extends WebTestCase
 {
@@ -28,7 +29,7 @@ class SecurityControllerTest extends WebTestCase
     public function testLoginPageRendersCorrectly(): void
     {
         $client = $this->getTestClient();
-        $client->request('GET', '/login');
+        $client->request(Request::METHOD_GET, '/login');
 
         self::assertResponseIsSuccessful();
         self::assertSelectorTextContains('form button', 'Connexion');
@@ -38,7 +39,7 @@ class SecurityControllerTest extends WebTestCase
     {
         $client = $this->getTestClient();
 
-        $crawler = $client->request('GET', '/admin/register');
+        $crawler = $client->request(Request::METHOD_GET, '/admin/register');
 
         $form = $crawler->selectButton('S\'inscrire')->form([
             'registration[name]' => 'testuser98989',
@@ -50,7 +51,7 @@ class SecurityControllerTest extends WebTestCase
         self::assertResponseRedirects('/login');
         $client->followRedirect();
 
-        $crawler = $client->request('GET', '/login');
+        $crawler = $client->request(Request::METHOD_GET, '/login');
 
         $form = $crawler->selectButton('Connexion')->form([
             '_username' => 'testemailuser@test.com',
@@ -67,7 +68,7 @@ class SecurityControllerTest extends WebTestCase
         $client = $this->getTestClient();
         $client->loginUser($this->userRepository->findAll()[0]);
 
-        $client->request('GET', '/login');
+        $client->request(Request::METHOD_GET, '/login');
 
         self::assertResponseRedirects('/');
         $client->followRedirect();
@@ -79,7 +80,7 @@ class SecurityControllerTest extends WebTestCase
         $client = $this->getTestClient();
         $client->loginUser($this->userRepository->findAll()[0]);
 
-        $client->request('GET', '/logout');
+        $client->request(Request::METHOD_GET, '/logout');
 
         self::assertResponseRedirects();
         $client->followRedirect();

@@ -19,6 +19,7 @@ use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\HttpKernel\DataCollector\TimeDataCollector;
+use Symfony\Component\HttpKernel\Profiler\Profile;
 use Symfony\Component\HttpKernel\Profiler\Profiler;
 
 class ProfilerReportingCommand extends Command
@@ -32,14 +33,11 @@ class ProfilerReportingCommand extends Command
      */
     protected static $defaultDescription = 'Returns the latest N profiler tokens for a given route pattern';
 
-    private Profiler $profiler;
-
     public function __construct(
         #[Autowire(service: 'profiler')]
-        Profiler $profiler,
+        private readonly Profiler $profiler,
     ) {
         parent::__construct();
-        $this->profiler = $profiler;
     }
 
     protected function configure(): void
@@ -103,7 +101,7 @@ class ProfilerReportingCommand extends Command
         $csvPath = $this->generateCsvPath($route, $n, $s);
         $tokens = $this->profiler->find('', $route, $n, '', '', '');
 
-        if (!$tokens) {
+        if ([] === $tokens) {
             $io->warning('No tokens found for the given route pattern: '.$route);
 
             return null;
@@ -181,7 +179,7 @@ class ProfilerReportingCommand extends Command
         $abCommand = sprintf('ab -n %d -c %d -v 1', $requests, $concurrency);
 
         $cookie = $options['cookie'] ?? '';
-        if (is_string($cookie) && !empty($cookie)) {
+        if (is_string($cookie) && ('' !== $cookie && '0' !== $cookie)) {
             $abCommand .= sprintf(' -C "%s"', $cookie);
         }
 
@@ -240,7 +238,7 @@ class ProfilerReportingCommand extends Command
             if (is_string($token)) {
                 $profile = $this->profiler->loadProfile($token);
 
-                if ($profile) {
+                if ($profile instanceof Profile) {
                     if ($profile->hasCollector('db')) {
                         /**
                          * @var DoctrineDataCollector $dbCollector
@@ -315,13 +313,13 @@ class ProfilerReportingCommand extends Command
 
             return;
         }
-        fputcsv($fp, $headers);
+        fputcsv($fp, $headers, ',', '"', '\\');
 
         foreach ($rows as $row) {
-            $csvRow = array_map(function ($value) {
+            $csvRow = array_map(function ($value): string {
                 return is_scalar($value) || null === $value ? (string) $value : '';
             }, $row);
-            fputcsv($fp, $csvRow);
+            fputcsv($fp, $csvRow, ',', '"', '\\');
         }
 
         fclose($fp);
@@ -428,7 +426,7 @@ class ProfilerReportingCommand extends Command
      */
     private function calculateAverage(array $values): float
     {
-        if (empty($values)) {
+        if ([] === $values) {
             return 0;
         }
 

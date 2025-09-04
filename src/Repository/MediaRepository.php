@@ -25,9 +25,9 @@ class MediaRepository extends ServiceEntityRepository
      * Finds media with pagination and joins on album and user.
      *
      * @param array<string, int|null> $criteria Filtering criteria
-     * @param array{id: string}     $orderBy  Order options
-     * @param int                   $limit    Max results
-     * @param int                   $offset   Result offset
+     * @param array{id: string}       $orderBy  Order options
+     * @param int                     $limit    Max results
+     * @param int                     $offset   Result offset
      *
      * @return Media[] Returns an array of Media objects
      */
@@ -99,7 +99,7 @@ class MediaRepository extends ServiceEntityRepository
             ->leftJoin('m.album', 'a')
             ->addSelect('a');
 
-        if (null !== $album) {
+        if ($album instanceof \App\Entity\Album) {
             $qb->andWhere('m.album = :album')
                ->setParameter('album', $album);
         }
@@ -127,7 +127,7 @@ class MediaRepository extends ServiceEntityRepository
         $qb = $this->createQueryBuilder('m')
             ->select('COUNT(m.id)');
 
-        if (null !== $album) {
+        if ($album instanceof \App\Entity\Album) {
             $qb->andWhere('m.album = :album')
                ->setParameter('album', $album);
         }

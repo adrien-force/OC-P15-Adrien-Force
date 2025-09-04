@@ -1,15 +1,16 @@
 <?php
 
-namespace Fonctionnal\Controller;
+namespace App\Tests\Fonctionnal\Controller;
 
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
+use Symfony\Component\HttpFoundation\Request;
 
 class RegistrationControllerTest extends WebTestCase
 {
     public function testRegistrationFormSubmission(): void
     {
         $client = static::createClient();
-        $crawler = $client->request('GET', '/admin/register');
+        $crawler = $client->request(Request::METHOD_GET, '/admin/register');
 
         $form = $crawler->selectButton('S\'inscrire')->form([
             'registration[name]' => 'testuser',

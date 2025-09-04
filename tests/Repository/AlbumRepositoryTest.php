@@ -1,6 +1,6 @@
 <?php
 
-namespace Repository;
+namespace App\Tests\Repository;
 
 use App\Entity\Album;
 use App\Repository\AlbumRepository;
@@ -17,7 +17,7 @@ class AlbumRepositoryTest extends KernelTestCase
         parent::setUp();
         self::bootKernel();
 
-        $this->entityManager = static::getContainer()->get('doctrine.orm.entity_manager');
+        $this->entityManager = static::getContainer()->get(EntityManagerInterface::class);
         $this->albumRepository = static::getContainer()->get(AlbumRepository::class);
     }
 
@@ -78,7 +78,7 @@ class AlbumRepositoryTest extends KernelTestCase
 
         $this->assertGreaterThanOrEqual(2, count($results));
 
-        $names = array_map(static fn ($album) => $album->getName(), $results);
+        $names = array_map(static fn ($album): string => $album->getName(), $results);
         $albumBIndex = array_search('Album B', $names, true);
         $albumAIndex = array_search('Album A', $names, true);
 
@@ -96,8 +96,8 @@ class AlbumRepositoryTest extends KernelTestCase
         $this->assertLessThanOrEqual(2, count($secondPage));
 
         if (count($firstPage) > 0 && count($secondPage) > 0) {
-            $firstPageIds = array_map(static fn ($album) => $album->getId(), $firstPage);
-            $secondPageIds = array_map(static fn ($album) => $album->getId(), $secondPage);
+            $firstPageIds = array_map(static fn ($album): ?int => $album->getId(), $firstPage);
+            $secondPageIds = array_map(static fn ($album): ?int => $album->getId(), $secondPage);
             $this->assertEmpty(array_intersect($firstPageIds, $secondPageIds), 'Pages should not overlap');
         }
     }

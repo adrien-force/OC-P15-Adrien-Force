@@ -1,12 +1,13 @@
 <?php
 
-namespace Fonctionnal\Controller;
+namespace App\Tests\Fonctionnal\Controller;
 
 use App\Repository\AlbumRepository;
 use App\Repository\MediaRepository;
 use App\Repository\UserRepository;
 use Symfony\Bundle\FrameworkBundle\KernelBrowser;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
+use Symfony\Component\HttpFoundation\Request;
 
 class HomeControllerTest extends WebTestCase
 {
@@ -34,14 +35,14 @@ class HomeControllerTest extends WebTestCase
     public function testHomePage(): void
     {
         $client = $this->getTestClient();
-        $client->request('GET', '/');
+        $client->request(Request::METHOD_GET, '/');
         self::assertResponseIsSuccessful();
     }
 
     public function testGuestsPage(): void
     {
         $client = $this->getTestClient();
-        $client->request('GET', '/guests');
+        $client->request(Request::METHOD_GET, '/guests');
         self::assertResponseIsSuccessful();
     }
 
@@ -94,7 +95,7 @@ class HomeControllerTest extends WebTestCase
     public function testGuestsPagination(string $url, array $expectedElements): void
     {
         $client = $this->getTestClient();
-        $crawler = $client->request('GET', $url);
+        $crawler = $client->request(Request::METHOD_GET, $url);
         self::assertResponseIsSuccessful();
 
         foreach ($expectedElements as $element) {
@@ -109,7 +110,7 @@ class HomeControllerTest extends WebTestCase
     public function testGuestsPaginationControls(): void
     {
         $client = $this->getTestClient();
-        $crawler = $client->request('GET', '/guests?page=1&limit=15');
+        $crawler = $client->request(Request::METHOD_GET, '/guests?page=1&limit=15');
         self::assertResponseIsSuccessful();
 
         $totalGuests = $this->userRepository->countWithCriteria(['isGuest' => true]);
@@ -130,7 +131,7 @@ class HomeControllerTest extends WebTestCase
         }
 
         if ($totalPages > 2) {
-            $crawler = $client->request('GET', '/guests?page=2&limit=15');
+            $crawler = $client->request(Request::METHOD_GET, '/guests?page=2&limit=15');
             self::assertResponseIsSuccessful();
 
             self::assertGreaterThan(
@@ -152,7 +153,7 @@ class HomeControllerTest extends WebTestCase
     public function testGuestsLimitFormVisibility(): void
     {
         $client = $this->getTestClient();
-        $crawler = $client->request('GET', '/guests?page=1&limit=15');
+        $crawler = $client->request(Request::METHOD_GET, '/guests?page=1&limit=15');
         self::assertResponseIsSuccessful();
 
         $totalGuests = $this->userRepository->countWithCriteria(['isGuest' => true]);
@@ -182,7 +183,7 @@ class HomeControllerTest extends WebTestCase
     public function testGuestsSearchFunctionality(): void
     {
         $guests = $this->userRepository->findAllGuestUsers();
-        if (empty($guests)) {
+        if ($guests === []) {
             self::markTestSkipped('No guest users found for search testing.');
         }
 
@@ -190,7 +191,7 @@ class HomeControllerTest extends WebTestCase
         $searchTerm = substr($firstGuest->getName(), 0, 3);
 
         $client = $this->getTestClient();
-        $crawler = $client->request('GET', '/guests?search='.$searchTerm);
+        $crawler = $client->request(Request::METHOD_GET, '/guests?search='.$searchTerm);
         self::assertResponseIsSuccessful();
 
         self::assertGreaterThan(
@@ -215,7 +216,7 @@ class HomeControllerTest extends WebTestCase
     public function testGuestsEmptySearchResult(): void
     {
         $client = $this->getTestClient();
-        $crawler = $client->request('GET', '/guests?search=nonexistentuser123456789');
+        $crawler = $client->request(Request::METHOD_GET, '/guests?search=nonexistentuser123456789');
         self::assertResponseIsSuccessful();
 
         self::assertGreaterThan(
@@ -282,7 +283,7 @@ class HomeControllerTest extends WebTestCase
     public function testGuestsSearchField(string $searchTerm, ?bool $expectResults, bool $expectClearButton): void
     {
         $client = $this->getTestClient();
-        $crawler = $client->request('GET', '/guests?search='.urlencode($searchTerm));
+        $crawler = $client->request(Request::METHOD_GET, '/guests?search='.urlencode($searchTerm));
         self::assertResponseIsSuccessful();
 
         self::assertGreaterThan(
@@ -342,12 +343,12 @@ class HomeControllerTest extends WebTestCase
     public function testGuestsSearchFormSubmission(): void
     {
         $guests = $this->userRepository->findAllGuestUsers();
-        if (empty($guests)) {
+        if ($guests === []) {
             self::markTestSkipped('No guest users found for search testing.');
         }
 
         $client = $this->getTestClient();
-        $crawler = $client->request('GET', '/guests');
+        $crawler = $client->request(Request::METHOD_GET, '/guests');
 
         $form = $crawler->filter('[data-testid="search-form"]')->form();
         $form['search'] = $guests[0]->getName();
@@ -371,7 +372,7 @@ class HomeControllerTest extends WebTestCase
     public function testGuestsSearchByEmail(): void
     {
         $guests = $this->userRepository->findAllGuestUsers();
-        if (empty($guests)) {
+        if ($guests === []) {
             self::markTestSkipped('No guest users found for email search testing.');
         }
 
@@ -390,7 +391,7 @@ class HomeControllerTest extends WebTestCase
         $emailPart = substr($guestWithEmail->getEmail(), 0, 5);
 
         $client = $this->getTestClient();
-        $crawler = $client->request('GET', '/guests?search='.$emailPart);
+        $crawler = $client->request(Request::METHOD_GET, '/guests?search='.$emailPart);
         self::assertResponseIsSuccessful();
 
         self::assertGreaterThan(
@@ -409,7 +410,7 @@ class HomeControllerTest extends WebTestCase
     public function testGuestsClearSearchFunctionality(): void
     {
         $client = $this->getTestClient();
-        $crawler = $client->request('GET', '/guests?search=testsearch');
+        $crawler = $client->request(Request::METHOD_GET, '/guests?search=testsearch');
         self::assertResponseIsSuccessful();
 
         self::assertGreaterThan(
@@ -445,7 +446,7 @@ class HomeControllerTest extends WebTestCase
         $searchTerm = substr($guests[0]->getName(), 0, 2);
 
         $client = $this->getTestClient();
-        $crawler = $client->request('GET', '/guests?search='.$searchTerm.'&page=1&limit=15');
+        $crawler = $client->request(Request::METHOD_GET, '/guests?search='.$searchTerm.'&page=1&limit=15');
         self::assertResponseIsSuccessful();
 
         $totalGuests = $this->userRepository->countWithCriteria(['isGuest' => true], $searchTerm);
@@ -453,7 +454,7 @@ class HomeControllerTest extends WebTestCase
 
         if ($totalPages > 1) {
             $paginationLinks = $crawler->filter('[data-testid^="guests-pagination-"]');
-            $paginationLinks->each(function ($node) use ($searchTerm) {
+            $paginationLinks->each(function ($node) use ($searchTerm): void {
                 $href = $node->attr('href');
                 self::assertStringContainsString(
                     'search='.$searchTerm,
@@ -469,7 +470,7 @@ class HomeControllerTest extends WebTestCase
         $client = $this->getTestClient();
         $guest = $this->userRepository->findAllGuestUsers()[0] ?? null;
         if ($guest) {
-            $client->request('GET', '/guest/'.$guest->getId());
+            $client->request(Request::METHOD_GET, '/guest/'.$guest->getId());
             self::assertResponseIsSuccessful();
         } else {
             self::markTestSkipped('No guest user found.');
@@ -479,12 +480,12 @@ class HomeControllerTest extends WebTestCase
     public function testPortfolioPage(): void
     {
         $client = $this->getTestClient();
-        $client->request('GET', '/portfolio');
+        $client->request(Request::METHOD_GET, '/portfolio');
         self::assertResponseIsSuccessful();
 
         $album = $this->albumRepository->findOneBy([]);
         if ($album) {
-            $client->request('GET', '/portfolio/'.$album->getId());
+            $client->request(Request::METHOD_GET, '/portfolio/'.$album->getId());
             self::assertResponseIsSuccessful();
         } else {
             self::markTestSkipped('No album found.');
@@ -540,7 +541,7 @@ class HomeControllerTest extends WebTestCase
     public function testPortfolioPagination(string $url, array $expectedElements): void
     {
         $client = $this->getTestClient();
-        $crawler = $client->request('GET', $url);
+        $crawler = $client->request(Request::METHOD_GET, $url);
         self::assertResponseIsSuccessful();
 
         foreach ($expectedElements as $element) {
@@ -588,11 +589,11 @@ class HomeControllerTest extends WebTestCase
 
         $client = $this->getTestClient();
         $url = '/portfolio/'.$album->getId();
-        if (!empty($pageParams)) {
+        if ($pageParams !== []) {
             $url .= '?'.http_build_query($pageParams);
         }
 
-        $crawler = $client->request('GET', $url);
+        $crawler = $client->request(Request::METHOD_GET, $url);
         self::assertResponseIsSuccessful();
 
         foreach ($expectedElements as $element) {
@@ -616,7 +617,7 @@ class HomeControllerTest extends WebTestCase
     public function testPortfolioPaginationControls(): void
     {
         $client = $this->getTestClient();
-        $crawler = $client->request('GET', '/portfolio?page=1&limit=9');
+        $crawler = $client->request(Request::METHOD_GET, '/portfolio?page=1&limit=9');
         self::assertResponseIsSuccessful();
 
         $totalMedia = $this->mediaRepository->countByAlbum(null);
@@ -637,7 +638,7 @@ class HomeControllerTest extends WebTestCase
         }
 
         if ($totalPages > 2) {
-            $crawler = $client->request('GET', '/portfolio?page=2&limit=9');
+            $crawler = $client->request(Request::METHOD_GET, '/portfolio?page=2&limit=9');
             self::assertResponseIsSuccessful();
 
             self::assertGreaterThan(
@@ -666,7 +667,7 @@ class HomeControllerTest extends WebTestCase
         }
 
         $client = $this->getTestClient();
-        $crawler = $client->request('GET', '/portfolio?albumPage=1');
+        $crawler = $client->request(Request::METHOD_GET, '/portfolio?albumPage=1');
         self::assertResponseIsSuccessful();
 
         self::assertGreaterThan(
@@ -675,7 +676,7 @@ class HomeControllerTest extends WebTestCase
             'Album next button should be present on first album page'
         );
 
-        $crawler = $client->request('GET', '/portfolio?albumPage=2');
+        $crawler = $client->request(Request::METHOD_GET, '/portfolio?albumPage=2');
         self::assertResponseIsSuccessful();
 
         self::assertGreaterThan(
@@ -703,7 +704,7 @@ class HomeControllerTest extends WebTestCase
         }
 
         $client = $this->getTestClient();
-        $crawler = $client->request('GET', '/portfolio/'.$emptyAlbum->getId());
+        $crawler = $client->request(Request::METHOD_GET, '/portfolio/'.$emptyAlbum->getId());
         self::assertResponseIsSuccessful();
 
         self::assertGreaterThan(
@@ -722,7 +723,7 @@ class HomeControllerTest extends WebTestCase
     public function testPortfolioLimitFormVisibility(): void
     {
         $client = $this->getTestClient();
-        $crawler = $client->request('GET', '/portfolio?page=1&limit=9');
+        $crawler = $client->request(Request::METHOD_GET, '/portfolio?page=1&limit=9');
         self::assertResponseIsSuccessful();
 
         $totalMedia = $this->mediaRepository->countByAlbum(null);
@@ -752,7 +753,7 @@ class HomeControllerTest extends WebTestCase
     public function testAboutPage(): void
     {
         $client = $this->getTestClient();
-        $client->request('GET', '/about');
+        $client->request(Request::METHOD_GET, '/about');
         self::assertResponseIsSuccessful();
     }
 }

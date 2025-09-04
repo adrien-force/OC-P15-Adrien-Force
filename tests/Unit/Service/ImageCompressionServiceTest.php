@@ -1,6 +1,6 @@
 <?php
 
-namespace Unit\Service;
+namespace App\Tests\Unit\Service;
 
 use App\Service\ImageCompressionService;
 use PHPUnit\Framework\TestCase;

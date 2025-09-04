@@ -1,6 +1,6 @@
 <?php
 
-namespace Security\Voter;
+namespace App\Tests\Security\Voter;
 
 use App\Entity\Album;
 use App\Entity\User;
@@ -12,9 +12,9 @@ use Symfony\Component\Security\Core\Authorization\AccessDecisionManagerInterface
 
 class AlbumVoterTest extends TestCase
 {
-    private MockObject|AccessDecisionManagerInterface $adm;
+    private \PHPUnit\Framework\MockObject\MockObject $adm;
     private AlbumVoter $voter;
-    private MockObject|TokenInterface $token;
+    private \PHPUnit\Framework\MockObject\MockObject $token;
     private Album $album;
 
     protected function setUp(): void
@@ -33,7 +33,7 @@ class AlbumVoterTest extends TestCase
     /**
      * @throws \ReflectionException
      */
-    private function callVoteOnAttribute(string $attribute, $subject, ?TokenInterface $token = null): bool
+    private function callVoteOnAttribute(string $attribute, \App\Entity\Album $subject, ?TokenInterface $token = null): bool
     {
         $ref = new \ReflectionClass($this->voter);
 
@@ -43,7 +43,7 @@ class AlbumVoterTest extends TestCase
     /**
      * @throws \ReflectionException
      */
-    private function callSupports(string $attribute, $subject): bool
+    private function callSupports(string $attribute, \App\Entity\Album|\stdClass $subject): bool
     {
         $ref = new \ReflectionClass($this->voter);
 

@@ -20,6 +20,11 @@ return RectorConfig::configure()
         SymfonySetList::SYMFONY_73,
         SymfonySetList::SYMFONY_CODE_QUALITY,
         SymfonySetList::SYMFONY_CONSTRUCTOR_INJECTION,
+        SetList::PHP_80,
+        SetList::PHP_81,
+        SetList::PHP_82,
+        SetList::PHP_83,
+        SetList::PHP_84
     ])
     ->withComposerBased(symfony: true)
 ;

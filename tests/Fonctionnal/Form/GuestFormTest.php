@@ -1,6 +1,6 @@
 <?php
 
-namespace Fonctionnal\Form;
+namespace App\Tests\Fonctionnal\Form;
 
 use App\Entity\User;
 use App\Repository\UserRepository;

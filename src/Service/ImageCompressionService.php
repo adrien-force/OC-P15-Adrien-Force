@@ -12,7 +12,7 @@ class ImageCompressionService
     private const DEFAULT_QUALITY = 85;
     private const MAX_WIDTH = 1920;
     private const MAX_HEIGHT = 1080;
-    private ImageManager $manager;
+    private readonly ImageManager $manager;
 
     public function __construct()
     {

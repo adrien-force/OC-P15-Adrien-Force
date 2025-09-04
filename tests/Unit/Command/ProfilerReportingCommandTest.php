@@ -1,6 +1,6 @@
 <?php
 
-namespace Unit\Command;
+namespace App\Tests\Unit\Command;
 
 use App\Command\ProfilerReportingCommand;
 use Doctrine\Bundle\DoctrineBundle\DataCollector\DoctrineDataCollector;
@@ -242,7 +242,7 @@ class ProfilerReportingCommandTest extends TestCase
 
         $result = $method->invoke($this->command, '/very/long/route/name/that/exceeds/thirty/one/characters/limit');
         $this->assertEquals('very_long_route_name_that_excee', $result);
-        $this->assertLessThanOrEqual(31, strlen($result));
+        $this->assertLessThanOrEqual(31, strlen((string) $result));
     }
 
     /**

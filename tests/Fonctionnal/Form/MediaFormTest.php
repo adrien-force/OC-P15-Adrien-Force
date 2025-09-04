@@ -1,12 +1,13 @@
 <?php
 
-namespace Fonctionnal\Form;
+namespace App\Tests\Fonctionnal\Form;
 
 use App\Entity\User;
 use App\Repository\UserRepository;
 use Symfony\Bundle\FrameworkBundle\KernelBrowser;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 use Symfony\Component\DomCrawler\Field\FileFormField;
+use Symfony\Component\HttpFoundation\Request;
 
 class MediaFormTest extends WebTestCase
 {
@@ -44,7 +45,7 @@ class MediaFormTest extends WebTestCase
 
         $client->loginUser($this->adminUser);
 
-        $crawler = $client->request('GET', '/admin/media/add');
+        $crawler = $client->request(Request::METHOD_GET, '/admin/media/add');
 
         self::assertResponseIsSuccessful();
         $this->assertCount(1, $crawler->filter('form[name="media"]'));
@@ -60,7 +61,7 @@ class MediaFormTest extends WebTestCase
 
         $client->loginUser($this->adminUser);
 
-        $crawler = $client->request('GET', '/admin/media/add');
+        $crawler = $client->request(Request::METHOD_GET, '/admin/media/add');
 
         $form = $crawler->selectButton('Ajouter')->form();
 
@@ -83,7 +84,7 @@ class MediaFormTest extends WebTestCase
 
         $client->loginUser($this->adminUser);
 
-        $crawler = $client->request('GET', '/admin/media/add');
+        $crawler = $client->request(Request::METHOD_GET, '/admin/media/add');
 
         $form = $crawler->selectButton('Ajouter')->form();
 

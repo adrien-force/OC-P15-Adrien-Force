@@ -1,6 +1,6 @@
 <?php
 
-namespace Security\Voter;
+namespace App\Tests\Security\Voter;
 
 use App\Entity\Media;
 use App\Entity\User;
@@ -12,9 +12,9 @@ use Symfony\Component\Security\Core\Authorization\AccessDecisionManagerInterface
 
 class MediaVoterTest extends TestCase
 {
-    private MockObject|AccessDecisionManagerInterface $adm;
+    private \PHPUnit\Framework\MockObject\MockObject $adm;
     private MediaVoter $voter;
-    private MockObject|TokenInterface $token;
+    private \PHPUnit\Framework\MockObject\MockObject $token;
     private Media $media;
     private User $user;
 
@@ -48,7 +48,7 @@ class MediaVoterTest extends TestCase
     /**
      * @throws \ReflectionException
      */
-    private function callVoteOnAttribute(string $attribute, $subject, ?TokenInterface $token = null): bool
+    private function callVoteOnAttribute(string $attribute, \App\Entity\Media $subject, ?TokenInterface $token = null): bool
     {
         $ref = new \ReflectionClass($this->voter);
 
@@ -58,7 +58,7 @@ class MediaVoterTest extends TestCase
     /**
      * @throws \ReflectionException
      */
-    private function callSupports(string $attribute, $subject): bool
+    private function callSupports(string $attribute, \App\Entity\Media|\stdClass $subject): bool
     {
         $ref = new \ReflectionClass($this->voter);
 

@@ -1,6 +1,6 @@
 <?php
 
-namespace Fonctionnal\Controller;
+namespace App\Tests\Fonctionnal\Controller;
 
 use App\Entity\Media;
 use App\Entity\User;
@@ -9,6 +9,7 @@ use App\Repository\UserRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\KernelBrowser;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
+use Symfony\Component\HttpFoundation\Request;
 
 class GuestControllerTest extends WebTestCase
 {
@@ -49,7 +50,7 @@ class GuestControllerTest extends WebTestCase
         $client = $this->getTestClient();
         $client->loginUser($this->adminUser);
 
-        $client->request('GET', '/admin/guest');
+        $client->request(Request::METHOD_GET, '/admin/guest');
 
         self::assertResponseIsSuccessful();
 
@@ -61,7 +62,7 @@ class GuestControllerTest extends WebTestCase
         $client = $this->getTestClient();
         $client->loginUser($this->adminUser);
 
-        $client->request('GET', '/admin/guest/manage');
+        $client->request(Request::METHOD_GET, '/admin/guest/manage');
 
         self::assertResponseIsSuccessful();
         self::assertSelectorTextContains('main div h1', 'Gérer les invités');
@@ -74,13 +75,13 @@ class GuestControllerTest extends WebTestCase
 
         $nonGuestUsers = $this->userRepository->findAllNonGuestUsers();
 
-        if (empty($nonGuestUsers)) {
+        if ($nonGuestUsers === []) {
             $this->markTestSkipped('No non-guest users available for testing');
         }
 
         $nonGuestUser = $nonGuestUsers[1];
 
-        $client->request('GET', '/admin/guest/add-role/'.$nonGuestUser->getId());
+        $client->request(Request::METHOD_GET, '/admin/guest/add-role/'.$nonGuestUser->getId());
 
         self::assertResponseRedirects('/admin/guest/manage');
 
@@ -99,13 +100,13 @@ class GuestControllerTest extends WebTestCase
 
         $guestUsers = $this->userRepository->findAllGuestUsers();
 
-        if (empty($guestUsers)) {
+        if ($guestUsers === []) {
             $this->markTestSkipped('No guest users available for testing');
         }
 
         $guestUser = $guestUsers[1];
 
-        $crawler = $client->request('GET', '/admin/guest/update/'.$guestUser->getId());
+        $crawler = $client->request(Request::METHOD_GET, '/admin/guest/update/'.$guestUser->getId());
 
         self::assertResponseIsSuccessful();
 
@@ -139,13 +140,13 @@ class GuestControllerTest extends WebTestCase
 
         $nonGuestUsers = $this->userRepository->findAllNonGuestUsers();
 
-        if (empty($nonGuestUsers)) {
+        if ($nonGuestUsers === []) {
             $this->markTestSkipped('No base users available for testing');
         }
 
         $guestUser = $nonGuestUsers[0];
 
-        $client->request('GET', '/admin/guest/update/'.$guestUser->getId());
+        $client->request(Request::METHOD_GET, '/admin/guest/update/'.$guestUser->getId());
 
         self::assertResponseStatusCodeSame(302);
         self::assertResponseRedirects('/admin/guest/manage');
@@ -159,13 +160,13 @@ class GuestControllerTest extends WebTestCase
 
         $guestUsers = $this->userRepository->findAllGuestUsers();
 
-        if (empty($guestUsers)) {
+        if ($guestUsers === []) {
             $this->markTestSkipped('No guest users available for testing');
         }
 
         $guestUser = $guestUsers[1];
 
-        $client->request('GET', '/admin/guest/remove-role/'.$guestUser->getId());
+        $client->request(Request::METHOD_GET, '/admin/guest/remove-role/'.$guestUser->getId());
 
         self::assertResponseRedirects('/admin/guest');
 
@@ -184,10 +185,10 @@ class GuestControllerTest extends WebTestCase
         $client = $this->getTestClient();
         $client->loginUser($this->baseUser);
 
-        $client->request('GET', '/admin/guest');
+        $client->request(Request::METHOD_GET, '/admin/guest');
         self::assertResponseStatusCodeSame(403);
 
-        $client->request('GET', '/admin/guest/manage');
+        $client->request(Request::METHOD_GET, '/admin/guest/manage');
         self::assertResponseStatusCodeSame(403);
     }
 
@@ -225,7 +226,7 @@ class GuestControllerTest extends WebTestCase
 
         $userId = $guestUser->getId();
 
-        $client->request('GET', '/admin/guest/delete/'.$userId);
+        $client->request(Request::METHOD_GET, '/admin/guest/delete/'.$userId);
 
         self::assertResponseRedirects('/admin/guest');
         $client->followRedirect();
@@ -260,7 +261,7 @@ class GuestControllerTest extends WebTestCase
 
         $this->assertTrue($guestUser->isGuest());
 
-        $client->request('GET', '/admin/guest/delete/'.$userId);
+        $client->request(Request::METHOD_GET, '/admin/guest/delete/'.$userId);
 
         self::assertResponseRedirects('/admin/guest');
         $client->followRedirect();
@@ -280,7 +281,7 @@ class GuestControllerTest extends WebTestCase
 
         $this->assertFalse($nonGuestUser->isGuest());
 
-        $client->request('GET', '/admin/guest/delete/'.$userId);
+        $client->request(Request::METHOD_GET, '/admin/guest/delete/'.$userId);
 
         self::assertResponseRedirects('/admin/guest');
         $client->followRedirect();

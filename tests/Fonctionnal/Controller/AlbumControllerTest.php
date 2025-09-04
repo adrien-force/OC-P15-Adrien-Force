@@ -1,6 +1,6 @@
 <?php
 
-namespace Fonctionnal\Controller;
+namespace App\Tests\Fonctionnal\Controller;
 
 use App\Entity\User;
 use App\Repository\AlbumRepository;
@@ -8,6 +8,7 @@ use App\Repository\MediaRepository;
 use App\Repository\UserRepository;
 use Symfony\Bundle\FrameworkBundle\KernelBrowser;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
+use Symfony\Component\HttpFoundation\Request;
 
 /**
  * @covers \App\Controller\Admin\AlbumController
@@ -37,7 +38,7 @@ class AlbumControllerTest extends WebTestCase
         $client = $this->client;
 
         $client->loginUser($this->baseUser);
-        $client->request('GET', '/admin/album');
+        $client->request(Request::METHOD_GET, '/admin/album');
 
         self::assertResponseIsSuccessful();
         self::assertSelectorTextContains('main div h1', 'Albums');
@@ -50,7 +51,7 @@ class AlbumControllerTest extends WebTestCase
         $client = $this->client;
 
         $client->loginUser($this->adminUser);
-        $client->request('GET', '/admin/album/add');
+        $client->request(Request::METHOD_GET, '/admin/album/add');
 
         self::assertResponseIsSuccessful();
         self::assertSelectorTextContains('form button', 'Ajouter');
@@ -63,7 +64,7 @@ class AlbumControllerTest extends WebTestCase
         $client->loginUser($this->baseUser);
 
         $album = $this->albumRepository->findAll()[0];
-        $client->request('GET', sprintf('/admin/album/update/%s', $album->getId()));
+        $client->request(Request::METHOD_GET, sprintf('/admin/album/update/%s', $album->getId()));
 
         self::assertResponseIsSuccessful();
         self::assertSelectorTextContains('form button', 'Modifier');
@@ -76,7 +77,7 @@ class AlbumControllerTest extends WebTestCase
         $album = $this->albumRepository->findAll()[0];
 
         $client->loginUser($this->baseUser);
-        $client->request('GET', sprintf('/admin/album/delete/%s', $album->getId()));
+        $client->request(Request::METHOD_GET, sprintf('/admin/album/delete/%s', $album->getId()));
 
         self::assertResponseRedirects('/admin/album');
         self::assertTrue($client->getResponse()->isRedirect());
@@ -92,7 +93,7 @@ class AlbumControllerTest extends WebTestCase
 
         $albumId = $album->getId();
 
-        $client->request('GET', sprintf('/admin/album/delete/%s', $album->getId()));
+        $client->request(Request::METHOD_GET, sprintf('/admin/album/delete/%s', $album->getId()));
         self::assertResponseRedirects('/admin/album');
         $client->followRedirect();
 
@@ -105,7 +106,7 @@ class AlbumControllerTest extends WebTestCase
         $client = $this->client;
         $client->loginUser($this->adminUser);
 
-        $crawler = $client->request('GET', '/admin/album/add');
+        $crawler = $client->request(Request::METHOD_GET, '/admin/album/add');
         $this->assertCount(1, $crawler->filter('form[name="album"]'));
         $form = $crawler->selectButton('Ajouter')->form();
         $form['album[name]'] = 'Test Album';
@@ -125,7 +126,7 @@ class AlbumControllerTest extends WebTestCase
 
         $album = $this->albumRepository->findAll()[0];
 
-        $crawler = $client->request('GET', sprintf('/admin/album/update/%s', $album->getId()));
+        $crawler = $client->request(Request::METHOD_GET, sprintf('/admin/album/update/%s', $album->getId()));
         $this->assertCount(1, $crawler->filter('form[name="album"]'));
         $form = $crawler->selectButton('Modifier')->form();
         $form['album[name]'] = 'Updated Album Name';

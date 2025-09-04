@@ -1,6 +1,6 @@
 <?php
 
-namespace Fonctionnal\Controller;
+namespace App\Tests\Fonctionnal\Controller;
 
 use App\Entity\Album;
 use App\Entity\User;
@@ -10,6 +10,7 @@ use App\Repository\UserRepository;
 use Symfony\Bundle\FrameworkBundle\KernelBrowser;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
+use Symfony\Component\HttpFoundation\Request;
 
 class MediaControllerTest extends WebTestCase
 {
@@ -37,7 +38,7 @@ class MediaControllerTest extends WebTestCase
         $this->baseUser = $userRepository->findByRole(User::USER_ROLE)[0];
 
         $guestUsers = $userRepository->findAllGuestUsers();
-        $this->guestUser = !empty($guestUsers) ? $guestUsers[0] : $this->baseUser;
+        $this->guestUser = empty($guestUsers) ? $this->baseUser : $guestUsers[0];
         $this->album = $albumRepository->findAll()[0];
     }
 
@@ -53,11 +54,11 @@ class MediaControllerTest extends WebTestCase
     {
         $client = $this->getTestClient();
         $client->loginUser($this->adminUser);
-        $client->request('GET', '/admin/media');
+        $client->request(Request::METHOD_GET, '/admin/media');
         self::assertResponseIsSuccessful();
 
         $client->loginUser($this->guestUser);
-        $client->request('GET', '/admin/media');
+        $client->request(Request::METHOD_GET, '/admin/media');
         self::assertResponseIsSuccessful();
     }
 
@@ -66,7 +67,7 @@ class MediaControllerTest extends WebTestCase
         $client = $this->getTestClient();
         $client->loginUser($this->adminUser);
 
-        $client->request('GET', '/admin/media/add');
+        $client->request(Request::METHOD_GET, '/admin/media/add');
 
         $filePath = __DIR__.'/MediaContent/img.jpg';
         $uploadedFile = new UploadedFile(
@@ -101,7 +102,7 @@ class MediaControllerTest extends WebTestCase
         $client = $this->getTestClient();
         $client->loginUser($this->baseUser);
 
-        $client->request('GET', '/admin/media/add');
+        $client->request(Request::METHOD_GET, '/admin/media/add');
 
         $filePath = __DIR__.'/MediaContent/img.jpg';
         $uploadedFile = new UploadedFile(
@@ -126,7 +127,7 @@ class MediaControllerTest extends WebTestCase
         self::assertNotNull($image);
         self::assertNotNull($image->getUser());
 
-        $client->request('GET', '/admin/media/delete/'.$image->getId());
+        $client->request(Request::METHOD_GET, '/admin/media/delete/'.$image->getId());
     }
 
     public function testDeleteMedia(): void
@@ -134,7 +135,7 @@ class MediaControllerTest extends WebTestCase
         $client = $this->getTestClient();
         $client->loginUser($this->adminUser);
 
-        $client->request('GET', '/admin/media/add');
+        $client->request(Request::METHOD_GET, '/admin/media/add');
 
         $filePath = __DIR__.'/MediaContent/img.jpg';
         $uploadedFile = new UploadedFile(
@@ -160,7 +161,7 @@ class MediaControllerTest extends WebTestCase
         self::assertNotNull($media);
         self::assertNotNull($media->getUser());
 
-        $client->request('GET', '/admin/media/delete/'.$media->getId());
+        $client->request(Request::METHOD_GET, '/admin/media/delete/'.$media->getId());
 
         if ($client->getResponse()->isRedirection()) {
             $client->followRedirect();
@@ -182,10 +183,10 @@ class MediaControllerTest extends WebTestCase
         $media = $this->mediaRepository->findOneBy(['title' => 'Test Image 2']);
         if ($media) {
             $media->setPath('uploads/test_file_to_delete.jpg');
-            $em = static::getContainer()->get('doctrine.orm.entity_manager');
+            $em = static::getContainer()->get(\Doctrine\ORM\EntityManager::class);
             $em->flush();
 
-            $client->request('GET', '/admin/media/delete/'.$media->getId());
+            $client->request(Request::METHOD_GET, '/admin/media/delete/'.$media->getId());
 
             if ($client->getResponse()->isRedirection()) {
                 $client->followRedirect();
